@@ -1,4 +1,6 @@
 # MetuRover
 MetuMech - Rover Team 4 ERC
 
-Here is our open source and free software, to be operated in Raspberry Pi Model B3 and prepared for European Rover Challenge  
+Distributed by Metu Rover for Raspberry Pi Model B3+ (x86_64-pc-linux-gnu).
+This is free software; you are free to change and redistribute it.
+There is NO WARRANTY, to the extend permitted by law.
