@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/adnanhd/MetuRover/communication/devel -DCMAKE_INSTALL_PREFIX=/home/adnanhd/MetuRover/communication/install -G Unix Makefiles

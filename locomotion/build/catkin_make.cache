@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/adnanhd/MetuRover/locomotion/devel -DCMAKE_INSTALL_PREFIX=/home/adnanhd/MetuRover/locomotion/install -G Unix Makefiles

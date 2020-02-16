@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/adnanhd/MetuRover/arm_motion/devel -DCMAKE_INSTALL_PREFIX=/home/adnanhd/MetuRover/arm_motion/install -G Unix Makefiles

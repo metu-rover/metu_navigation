@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/adnanhd/MetuRover/cigkofte/devel -DCMAKE_INSTALL_PREFIX=/home/adnanhd/MetuRover/cigkofte/install -G Unix Makefiles
