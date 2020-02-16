@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/home/adnanhd/MetuRover/electronics/devel -DCMAKE_INSTALL_PREFIX=/home/adnanhd/MetuRover/electronics/install -G Unix Makefiles
