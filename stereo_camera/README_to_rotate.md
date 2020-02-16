@@ -1,8 +1,8 @@
 # Steps
 
-1- Enable Device: sudo modprobe v4l2loopback exclusive_caps=1
+1- Enable Device: `sudo modprobe v4l2loopback exclusive_caps=1`
 
-2- Write: ffmpeg -f v4l2 -i /dev/video2 -vf "transpose=2,transpose=2,format=yuyv422" -f v4l2 /dev/video1^C
+2- Write: `ffmpeg -f v4l2 -i /dev/video2 -vf "transpose=2,transpose=2,format=yuyv422" -f v4l2 /dev/video1^C`
 
 # Notes
 
