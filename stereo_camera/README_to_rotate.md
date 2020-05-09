@@ -9,4 +9,5 @@
 - Change yuv420p --> yuyv422 in order to run camera on ROS
 - transpose=2 means rotate 180 degree.
 - [Link](https://unix.stackexchange.com/questions/408187/rotate-webcam-as-well-as-screen-portrait-mode)
+- [Answer link](https://unix.stackexchange.com/a/490040)
 
