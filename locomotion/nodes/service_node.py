@@ -419,7 +419,6 @@ class MathOperations():
 
 def handle_get_path_from_map(msg):
     global ObstacleList
-    global paths
     """""""""*************    IDENTIFIED   OBJECTS    *************"""""""""
     # do not define concave shapes,concave shapes must be divided into convex shapes and defined in this way
     # If the user wants to define an obstacle inside another obstacle,s/he must first define an inside one.
