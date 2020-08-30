@@ -1,0 +1,3 @@
+<launch>
+    <node pkg='ros_service' name='test1' type='rover_motion.py'/>
+</launch>
