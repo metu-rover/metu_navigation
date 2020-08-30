@@ -1,7 +1,7 @@
 <launch>
     
-    <node name='try1' pkg='rover_locomotion' type='service_node.py' required='true' />
+    <node name='locomotion_server' pkg='rover_locomotion' type='service_node.py' required='true' />
 
-    <node name='try1' pkg='rover_locomotion' type='rover_motion.py' />
+    <node name='locomotion_controller' pkg='rover_locomotion' type='rover_motion.py' />
     
 </launch>
