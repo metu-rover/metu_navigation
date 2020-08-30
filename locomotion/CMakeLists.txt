@@ -50,7 +50,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_service_files(
   FILES
-  NextPoint.srv
+  GetPathFromMap.srv
+  PlanPathFromMap.srv
 )
 
 ## Generate services in the 'srv' folder
