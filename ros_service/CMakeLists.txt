@@ -57,7 +57,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  ServiceExample.srv
+  NextPoint.srv
 )
 
 ## Generate actions in the 'action' folder
