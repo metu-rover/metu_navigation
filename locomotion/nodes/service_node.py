@@ -1,14 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import math
 import rospy
 import numpy as np
 from collections import defaultdict
 from ros_service.srv import NextPoint
 from geometry_msgs.msg import Point
 import itertools
-
-ObstacleList = []
 
 
 class Map():
@@ -467,6 +464,7 @@ def visualizer(msg):
 
 
 if __name__ == "__main__":
+    ObstacleList = []
     rospy.init_node('test_service_server', anonymous=True)
 
     rospy.Service('test_service', NextPoint, visualizer)
