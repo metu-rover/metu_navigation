@@ -3,7 +3,7 @@
 import rospy
 import math
 from geometry_msgs.msg import Twist, Pose, PoseStamped, Point
-from ros_service.srv import ServiceExample
+from locomotion.srv import GetPathFromMap, GetPathFromMapRequest
 
 
 def Quad2Euler(q):
@@ -58,35 +58,53 @@ def update_position(msg, rover):
 
 
 if __name__ == '__main__':
-    rospy.init_node('controller', anonymous=True)
-
-    pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
-
-    me = ''
-    next_point = Point()
+    target = Pose()
     rover = Pose()
-
-    # BUG: handler is not working
-    service = rospy.Service('point_creator', ServiceExample, handler=me)
-
-    # TODO: find the topic of the agent
-    rospy.Subscriber('pose', PoseStamped, update_position, rover)
+    path = Point()
+    dist = -1
     u_max = 0.5
     K_p = 0.5
 
+    # initialize node
+    rospy.init_node('rover_controller', anonymous=True)
+
+    # publish /cmd_vel to drive rover and
+    # initialize its message container
+    pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
     msg = Twist()
 
-    rate = rospy.Rate(10)
+    # wait until the service point creator to get the next action
+    # is ready and get a proxy of it
+    rospy.loginfo_once('[rover_controller] is waiting... /get_path_from_map')
+    rospy.wait_for_service('/get_path_from_map')
+    srv = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
+
+    # subscribe the topic /pose to learn local position of the rover
+    # TODO: rospy.Subscriber('pose', PoseStamped, update_position, rover)
+
+    rate = rospy.Rate(10)  # 10 Hz
 
     while not rospy.is_shutdown():
 
-        alpha = math.atan2(next_point.y - rover.position.y,
-                           next_point.x - rover.position.x)
+        rospy.loginfo(
+            '[rover_controller] is requesting... /get_path_from_map')
+        rvr = Point(950, 450, 4)
+        trg = Point(170, 500, 4)
+
+        if dist == -1 or dist < 5:
+            req = GetPathFromMapRequest(rvr, trg)
+            res = srv(req)
+
+        dist = math.sqrt((res.next.x - rover.position.x) **
+                         2 + (res.next.y - rover.position.y)**2)
+
+        alpha = math.atan2(res.next.y - rover.position.y,
+                           res.next.x - rover.position.x)
         alpha_cur = Quad2Euler(rover.orientation)[2]
 
         dot_product = (math.cos(alpha) * math.cos(alpha_cur) +
                        math.sin(alpha) * math.sin(alpha_cur))
-                       
+
         msg.linear.x = dot_product * u_max if dot_product > 0 else 0
         msg.angular.z = (alpha_cur - alpha) * K_p
 

@@ -4,11 +4,9 @@ import math
 import rospy
 import numpy as np
 from collections import defaultdict
-from ros_service.srv import NextPoint
+from locomotion.srv import GetPathFromMap, PlanPathFromMap
 from geometry_msgs.msg import Point
 import itertools
-
-ObstacleList = []
 
 
 class Map():
@@ -109,19 +107,19 @@ class Ways():
             for obstacle in self.ObstaclesList:
                 for edge in obstacle.Edges:  # if the pairs collide with any edge these pairs are deleted for path planning
                     # else add to possible accesable points
-                    if math.doesCollide(pairs, edge):
+                    if mathobs1.doesCollide(pairs, edge):
                         can_draw = False
                         break
             if can_draw == True:
                 if not Roughness == False:
                     self.Way_List.append(
-                        (pairs[0], pairs[1], math.lenghtOfLines(pairs, roughness=Roughness)))
+                        (pairs[0], pairs[1], mathobs1.lenghtOfLines(pairs, roughness=Roughness)))
                     # If the obstacle has a roughness, the ways' lenght are added by multiplying their roughness
                     # Becuse of the road roughness the vehicles must pass the area slower
                     # By using these the algorithm will choose most efficient way
                 else:
                     self.Way_List.append(
-                        (pairs[0], pairs[1], math.lenghtOfLines(pairs)))
+                        (pairs[0], pairs[1], mathobs1.lenghtOfLines(pairs)))
                     # the ways are added to list with their lenght
 
     def Create_Rough_Pairlist(self):
@@ -141,7 +139,7 @@ class Ways():
                     Rough_Pairlist.append(inside)
                 # in that part we included all combinations of one obstacle's coords between themselves to list for increase the ways that inside of obstacle
                 for value, coord in enumerate(obstacle.Coords):
-                    self.Way_List.append((coord, obstacle.InsideCoords[value], math.lenghtOfLines(
+                    self.Way_List.append((coord, obstacle.InsideCoords[value], mathobs1.lenghtOfLines(
                         [coord, obstacle.InsideCoords[value]], roughness=obstacle.Roughness)))
                     # In order to the algorithm access to an obstacle which is passable the outside coords and inside coords of obstacle must be connected
                     # in that part we connected  inside coords and coords
@@ -186,8 +184,8 @@ class Points():
 
                     # The function create lines which has available equation from obstacle's edges
                     # By using these lines the function check the point is in the obstacle or not
-                    slope, constant = MathOperations.functionsOfEdges(
-                        self, edge)
+                    slope, constant = mathobs1.functionsOfEdges(
+                        edge)
                     # the value of meanpoint if it is on the edge
                     y = (slope*obstacle.MeanPoint[0])+constant
                     # the value of the point if it is on the edge
@@ -274,11 +272,11 @@ class Path():
         for obstacle in ways.ObstaclesList:
             for edge in obstacle.Edges:
                 # the funciton check if there is an object between start and end by using pair list just as MapDesign
-                if MathOperations.doesCollide(pairs, edge):
+                if mathobs1.doesCollide(pairs, edge):
                     can_draw = False
                     break
         if can_draw == True:
-            path = [[pairs[0], pairs[1], MathOperations.lenghtOfLines(
+            path = [[pairs[0], pairs[1], mathobs1.lenghtOfLines(
                 pairs, roughness=startpoint.Roughness)]]
             return path, path[0][2]
         return [], 0  # if all edges will collide with the edge of points there is an object between points
@@ -289,8 +287,8 @@ class Path():
         while index < len(self.path):
             roughness = 0
             # In here the funciton calculate real lenght of points by using pythagorous' theorem
-            lenght = round(MathOperations.lenghtOfLines(
-                self, self.path[index]), 2)
+            lenght = round(mathobs1.lenghtOfLines(
+                self.path[index]), 2)
             # If the lenght is different than in path these lenght has rouhgness
             if lenght != round(self.path[index][2], 2):
                 # roughnesss is calculated
@@ -419,9 +417,8 @@ class MathOperations():
         return m, a
 
 
-def visualizer(msg):
+def handle_get_path_from_map(msg):
     global ObstacleList
-    rospy.loginfo('responsing... /test_service')
     """""""""*************    IDENTIFIED   OBJECTS    *************"""""""""
     # do not define concave shapes,concave shapes must be divided into convex shapes and defined in this way
     # If the user wants to define an obstacle inside another obstacle,s/he must first define an inside one.
@@ -453,8 +450,8 @@ def visualizer(msg):
 
     map1 = Map((150, 100), (1920, 1080))
 
-    startPoint = Points((950, 450), path.Ways)
-    endPoint = Points((170, 500), path.Ways)
+    startPoint = Points((msg.curr.x, msg.curr.y), path.Ways)
+    endPoint = Points((msg.dest.x, msg.dest.x), path.Ways)
 
     path.graph = Graph_d()
     for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
@@ -462,13 +459,20 @@ def visualizer(msg):
     path.path, sum_cost = path.DijkstrasAlgorithm(
         startPoint, endPoint, path.Ways)
     path.findRoughness(map1)
-    res = Point(3, 2, 3)
-    return res
+
+    rospy.loginfo('responsing... /path_planner')
+
+    current_path = path.path[0][1]
+    return Point(current_path[0], current_path[1], 0)
 
 
 if __name__ == "__main__":
-    rospy.init_node('test_service_server', anonymous=True)
+    ObstacleList = []
+    mathobs1 = MathOperations()
 
-    rospy.Service('test_service', NextPoint, visualizer)
+    rospy.init_node('path_planner_service', anonymous=True)
+    rospy.loginfo_once('the service /get_path_from_map is ready...')
+
+    rospy.Service('get_path_from_map', GetPathFromMap, handle_get_path_from_map)
 
     rospy.spin()
