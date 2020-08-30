@@ -10,12 +10,12 @@ def handleNextPointResponse(msg):
     return res
 
 if __name__ == '__main__':
-    rospy.init_node('client', anonymous=True)
-    rospy.loginfo_once('requesting... /test_service')
-    try:
-        rospy.Service('test_service', NextPoint, handleNextPointResponse)
+    rospy.init_node('test_service_client', anonymous=True)
+    try:        
         service_handler = rospy.ServiceProxy('test_service', NextPoint)
+        rospy.loginfo_once('waiting... /test_service')
         rospy.wait_for_service('/test_service')
+        rospy.loginfo_once('requesting... /test_service')
         current = Point(1,3,4)
         destin = Point(4,2,3)
         req = NextPointRequest(current, destin)

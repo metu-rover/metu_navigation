@@ -6,12 +6,14 @@ from ros_service.srv import NextPoint, NextPointResponse
 
 
 def handleNextPointResponse(msg):
-    return NextPointResponse(1, 2, 3)
+    rospy.loginfo('responsing... /test_service')
+    res = Point(3,2,3)
+    return res
 
 
 if __name__ == "__main__":
-    rospy.init_node('server', anonymous=True)
+    rospy.init_node('test_service_server', anonymous=True)
 
-    srv = rospy.Service('test_service', NextPoint, handleNextPointResponse)
+    rospy.Service('test_service', NextPoint, handleNextPointResponse)
 
     rospy.spin()
