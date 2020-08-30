@@ -61,6 +61,7 @@ if __name__ == '__main__':
     target = Pose()
     rover = Pose()
     path = Point()
+    dist = -1
     u_max = 0.5
     K_p = 0.5
 
@@ -81,7 +82,7 @@ if __name__ == '__main__':
     # subscribe the topic /pose to learn local position of the rover
     # TODO: rospy.Subscriber('pose', PoseStamped, update_position, rover)
 
-    rate = rospy.Rate(100)  # 10 Hz
+    rate = rospy.Rate(10)  # 10 Hz
 
     while not rospy.is_shutdown():
 
@@ -89,8 +90,13 @@ if __name__ == '__main__':
             '[rover_controller] is requesting... /get_path_from_map')
         rvr = Point(950, 450, 4)
         trg = Point(170, 500, 4)
-        req = GetPathFromMapRequest(rvr, trg)
-        res = srv(req)
+
+        if dist == -1 or dist < 5:
+            req = GetPathFromMapRequest(rvr, trg)
+            res = srv(req)
+
+        dist = math.sqrt((res.next.x - rover.position.x) **
+                         2 + (res.next.y - rover.position.y)**2)
 
         alpha = math.atan2(res.next.y - rover.position.y,
                            res.next.x - rover.position.x)
