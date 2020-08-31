@@ -3,7 +3,7 @@
 import rospy
 import math
 from geometry_msgs.msg import Twist, Pose, PoseStamped, Point
-from locomotion.srv import GetPathFromMap, GetPathFromMapRequest
+from leo-rover-locomotion.srv import GetPathFromMap, GetPathFromMapRequest
 
 
 def Quad2Euler(q):
