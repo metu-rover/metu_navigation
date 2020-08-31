@@ -1,7 +1,0 @@
-<launch>
-    
-    <node name='try1' pkg='rover_locomotion' type='server.py' required='true' />
-
-    <node name='try1' pkg='rover_locomotion' type='client.py' />
-    
-</launch>
