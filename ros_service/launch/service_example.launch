@@ -1,4 +1,0 @@
-<launch>
-    <node pkg='ros_service' name='server_test' type='server.py'/>
-    <node pkg='ros_service' name='client_test' type='client.py'/>
-</launch>
