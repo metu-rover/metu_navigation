@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>leo-rover-locomotion</name>
+  <name>leo_rover_locomotion</name>
   <version>0.0.0</version>
   <description>The Locomotion Package</description>
 
