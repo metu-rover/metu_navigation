@@ -4,7 +4,7 @@ import math
 import rospy
 import numpy as np
 from collections import defaultdict
-from leo_rover_locomotion.srv import GetPathFromMap, PlanPathFromMap
+from leo_rover_navigation.srv import GetPathFromMap, PlanPathFromMap
 from geometry_msgs.msg import Point
 import itertools
 

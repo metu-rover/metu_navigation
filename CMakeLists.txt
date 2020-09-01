@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(leo_rover_locomotion)
+project(leo_rover_localization)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
