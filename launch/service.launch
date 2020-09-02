@@ -1,7 +1,7 @@
 <launch>
     
-    <node name='locomotion_server' pkg='rover_locomotion' type='service_node.py' required='true' />
+    <node name='service' pkg='leo_rover_localization' type='service_node.py' args="$(find leo_rover_localization)/config/leo_map.npz"  />
 
-    <node name='locomotion_controller' pkg='rover_locomotion' type='rover_motion.py' />
+    <node name='locomotion_controller' pkg='leo_rover_localization' type='rover_motion.py' />
     
 </launch>
