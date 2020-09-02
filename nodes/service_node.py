@@ -1,162 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import math
 import rospy
+import nodes.MapDesign
+from nodes.MapDesign import Obstacles
 import numpy as np
 from collections import defaultdict
 from leo_rover_navigation.srv import GetPathFromMap, PlanPathFromMap
 from geometry_msgs.msg import Point
 import itertools
-
-
-class Map():
-    def __init__(self, mapsize=tuple, screensize=tuple):
-        screenx, screeny, multiply = self.findMapSize(mapsize, screensize)
-        # it is for define a map that fit the screen but include as much pixel as could be and correct path length in world
-        self.imagesize = (screenx, screeny)
-        # every pixel in the image equals to this length in the world
-        self.pixelsize = round((1*1.0)/multiply, 3)
-
-    def findMapSize(self, mapsize, screensize):
-        screenx, screeny = mapsize[0], mapsize[1]
-        multiply = 2  # multiply of zoom
-        # if map is smaller than screensize the map is zoomed
-        if mapsize[0] < screensize[0] and mapsize[1] < screensize[1]:
-            while True:
-                screenx = mapsize[0]*multiply
-                screeny = mapsize[1]*multiply
-                # if zoomed mapsize is bigger than max screensize loop is broken
-                if screenx > screensize[0] or screeny > screensize[1]:
-                    multiply -= 1  # maximum multiply
-                    break
-                multiply += 1
-            return mapsize[0]*multiply, mapsize[1]*multiply, multiply
-        else:  # if map is bigger than screensize the map is zoomed out
-            while True:
-                screenx = mapsize[0]/multiply
-                screeny = mapsize[1]/multiply
-                if screenx < 1920 or screeny < 1080:  # if zoomed mapsize is smaller than max screensize loop is broken
-                    multiply -= 1
-                    break
-                multiply += 1
-            # to remove float numbers as result of dividing use int function
-            return int(mapsize[0]/multiply), int(mapsize[1]/multiply), 1/multiply
-
-
-class Obstacles():
-
-    def __init__(self, Coords, Roughness="Infinity"):
-        global ObstacleList
-        self.Coords = Coords  # coordinates must be defined sequentially
-        self.InsideCoords = []
-        self.Edges = []
-        self.Roughness = Roughness
-        # to define outside and inside coords
-        self.MeanPoint = np.mean(self.Coords, axis=0)
-
-        ObstacleList.append(self)  # it is necessary for ways class
-
-        self.CoordsToEdges()  # define edges by using coords of obstacle
-        if not self.Roughness == "Infinity":  # to define ways in the obstacles that can passable
-            self.InsideCoords = self.ShiftCoords(number=-1)
-            self.InsideCoords.append((self.MeanPoint[0], self.MeanPoint[1]))
-        self.Coords = self.ShiftCoords()
-
-    def CoordsToEdges(self):
-        index = 0
-        while index != len(self.Coords)-1:
-            # each coordinate is combined with the next
-            self.Edges.append((self.Coords[index], self.Coords[index+1]))
-            index += 1
-        self.Edges.append((self.Coords[index], self.Coords[0]))
-
-    def ShiftCoords(self, number=1):
-        new_coords = []
-
-        # Coords must be shifted for do not collide with any own edges
-        for coord in self.Coords:
-            if coord[0] > self.MeanPoint[0]:
-                new_coords_x = coord[0]+number
-            else:
-                new_coords_x = coord[0]-number
-            if coord[1] > self.MeanPoint[1]:
-                new_coords_y = coord[1]+number
-            else:
-                new_coords_y = coord[1]-number
-
-            new_coords.append((new_coords_x, new_coords_y))
-        return new_coords
-        # If the x-axis value of the coordinate is greater than the value of the mean point, this coordinate is to the right of the midpoint,
-        # so it must be shifted to the right for outside coordinates and must be shifred to the left for inside coordinates.
-
-
-class Ways():
-
-    def __init__(self, ObstaclesList=[]):
-        self.ObstaclesList = ObstaclesList
-        self.Pair_List = []  # to take combinations of the all obstacle's all points
-        self.Way_List = []
-
-        self.Create_Rough_Pairlist()
-        self.Crate_PairList()
-        self.Create_Ways(self.Pair_List)
-
-    def Create_Ways(self, GivenPairs=[], Roughness=False):
-        for pairs in GivenPairs:  # given pairs include all combinations of all points
-            can_draw = True
-            for obstacle in self.ObstaclesList:
-                for edge in obstacle.Edges:  # if the pairs collide with any edge these pairs are deleted for path planning
-                    # else add to possible accesable points
-                    if mathobs1.doesCollide(pairs, edge):
-                        can_draw = False
-                        break
-            if can_draw == True:
-                if not Roughness == False:
-                    self.Way_List.append(
-                        (pairs[0], pairs[1], mathobs1.lenghtOfLines(pairs, roughness=Roughness)))
-                    # If the obstacle has a roughness, the ways' lenght are added by multiplying their roughness
-                    # Becuse of the road roughness the vehicles must pass the area slower
-                    # By using these the algorithm will choose most efficient way
-                else:
-                    self.Way_List.append(
-                        (pairs[0], pairs[1], mathobs1.lenghtOfLines(pairs)))
-                    # the ways are added to list with their lenght
-
-    def Create_Rough_Pairlist(self):
-        # These loops exist for crate a rough pair list which include only Rough coords for doesCollide function
-
-        for obstacle in self.ObstaclesList:
-            Rough_Pairlist = []
-            if not obstacle.Roughness == "Infinity":
-                for pair in obstacle.InsideCoords:
-                    # In here the ways are drawn if an obstacle inside of another obstacle
-                    for objects in self.ObstaclesList:
-                        if not objects.Roughness == "Infinity":
-                            for coords in objects.Coords:
-                                Rough_Pairlist.append((pair, coords))
-                                # until this part we included all combinatons of one obstacle's coord and other obstacle's insidecoord to list
-                for inside in itertools.combinations(obstacle.InsideCoords, 2):
-                    Rough_Pairlist.append(inside)
-                # in that part we included all combinations of one obstacle's coords between themselves to list for increase the ways that inside of obstacle
-                for value, coord in enumerate(obstacle.Coords):
-                    self.Way_List.append((coord, obstacle.InsideCoords[value], mathobs1.lenghtOfLines(
-                        [coord, obstacle.InsideCoords[value]], roughness=obstacle.Roughness)))
-                    # In order to the algorithm access to an obstacle which is passable the outside coords and inside coords of obstacle must be connected
-                    # in that part we connected  inside coords and coords
-                self.Create_Ways(Rough_Pairlist, obstacle.Roughness)
-                # After create the pairs who have roughness the list is sent to create ways funciton
-
-    def Crate_PairList(self):
-        # The pair list contains all possible lines by the coordinate pairs generated. If these lines do not collide, they can be used as paths.
-        PairList = []
-        for obstacle in self.ObstaclesList:
-            for coords in obstacle.Coords:
-                PairList.append(coords)
-        # It is for crate the list which contain all coords for take combinations of all of them
-        for pair in itertools.combinations(PairList, 2):
-            self.Pair_List.append(pair)
-            # itertools.combinations function returns all combinations of coordinate pairs of the paired list.
-
 
 class Points():
 
@@ -417,48 +269,23 @@ class MathOperations():
         return m, a
 
 
-def handle_get_path_from_map(msg):
-    global ObstacleList
-    """""""""*************    IDENTIFIED   OBJECTS    *************"""""""""
-    # do not define concave shapes,concave shapes must be divided into convex shapes and defined in this way
-    # If the user wants to define an obstacle inside another obstacle,s/he must first define an inside one.
-    Infinity1 = Obstacles(
-        [(270, 202), (287, 258), (356, 316), (307, 399), (229, 416), (172, 349)])
-    Infinity2 = Obstacles([(138, 626), (256, 748), (346, 752),
-                           (480, 906), (307, 1004), (73, 947), (49, 796)])
-    Infinity3 = Obstacles([(402, 708), (358, 570), (463, 404),
-                           (640, 209), (795, 191), (833, 241), (857, 385), (783, 461)])
-    Infinity4 = Obstacles([(664, 652), (747, 712), (864, 659),
-                           (1084, 703), (1118, 823), (1080, 975), (724, 962), (488, 813)])
-    Infinity5 = Obstacles(
-        [(984, 118), (1093, 95), (1115, 238), (1023, 287), (947, 252)])
-    Infinity6 = Obstacles(
-        [(1025, 391), (1191, 337), (1296, 361), (1353, 493), (1153, 663), (1025, 579)])
+def handle_get_path_from_map(msg, mapnp, WayList, mathobses1):
 
-    Rough1 = Obstacles(
-        [(897, 423), (926, 495), (986, 461), (975, 418)], Roughness=3)
-    Rough2 = Obstacles(
-        [(147, 455), (219, 457), (203, 551), (166, 545)], Roughness=4)
-    Rough3 = Obstacles([(706, 525), (797, 630), (1017, 617),
-                        (997, 397), (908, 365)], Roughness=1.8)
-    Rough4 = Obstacles([(85, 503), (124, 424), (278, 451),
-                        (250, 596), (132, 578)], Roughness=2)
+    for ways in MapNp["Paths"]:
+        WayList.append(ways)
 
-    """""""""*************    IDENTIFIED   OBJECTS    *************"""""""""
-    Way = Ways(ObstacleList)
-    path = Path(Way, Way.Way_List)
+    path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
 
-    map1 = Map((150, 100), (1920, 1080))
+    map1 = MapDesign.Map((150, 100), (1920, 1080))
 
-    startPoint = Points((msg.curr.x, msg.curr.y), path.Ways)
-    endPoint = Points((msg.dest.x, msg.dest.x), path.Ways)
+    startPoint = Points((950, 450), path.Ways)
+    endPoint = Points((170, 500), path.Ways)
 
     path.graph = Graph_d()
     for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
         path.graph.AddEdges(point[0], point[1], point[2])
     path.path, sum_cost = path.DijkstrasAlgorithm(
         startPoint, endPoint, path.Ways)
-    path.findRoughness(map1)
 
     rospy.loginfo('responsing... /path_planner')
 
@@ -467,12 +294,26 @@ def handle_get_path_from_map(msg):
 
 
 if __name__ == "__main__":
+    WayList = []
     ObstacleList = []
     mathobs1 = MathOperations()
+    rospy.init_node('test_service_server', anonymous=True)
 
-    rospy.init_node('path_planner_service', anonymous=True)
-    rospy.loginfo_once('the service /get_path_from_map is ready...')
+    if len(rospy.myargv()) == 1:
+        rospy.logerr(
+            'usage: rosrun leo_rover_localization service_node.py <path_to_map.npz>')
+    else:
+        np_load_old = np.load
+        # modify the default parameters of np.loadWe
+        np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
+        MapNp = np.load(rospy.myargv()[1])
+        # call load_data with allow_pickle implicitly set to true
+        # # restore np.load for future normal usage
+        np.load = np_load_old
 
-    rospy.Service('get_path_from_map', GetPathFromMap, handle_get_path_from_map)
+        rospy.Service('test_service', GetPathFromMap,
+                      handle_get_path_from_map, (MapNp, WayList, mathobs1))
 
-    rospy.spin()
+        rospy.loginfo_once('requesting... /point_creator')
+
+        rospy.spin()
