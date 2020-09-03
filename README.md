@@ -1,5 +1,4 @@
 # metu-rover
-MetuMech - Rover Team 4 ERC
 
 to run rover_controller_node.py and path_planner_service.py
 
@@ -18,7 +17,11 @@ to allow rover_controller_node.py publishing to cmd_vel
 rosservice call /enable_motors "enable: True"
 ```
 
-to set waypoint
+to update a new waypoint to rover
 ```shell
-rosservice call /set_waypoints "enable: True"
+rosservice call /set_waypoint "target:
+  x: 10.0
+  y: 0.0
+  z: 0.0" 
 ```
+and make sure that you get the `resopnd: True`
