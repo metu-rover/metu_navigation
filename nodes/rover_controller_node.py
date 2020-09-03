@@ -4,6 +4,7 @@ import rospy
 import math
 from geometry_msgs.msg import Twist, Pose, PoseStamped, Point
 from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
+from leo_rover_localization.srv import SetMotorEnable, SetMotorEnableRequest
 from leo_rover_localization.srv import SetNewTarget, SetNewTargetRequest
 from nav_msgs.msg import Odometry
 
@@ -66,10 +67,22 @@ def handle_target_point(msg):
     trg = msg.target
     return True
 
+def handle_motor_enable(msg):
+    global is_enable
+    global pub
+    is_enable = msg.enable
+    
+    if is_enable:
+        return "motors are enabled, Don't panic!"
+    else:
+        pub.publish(Twist())
+        return "motors are disabled."
+
 if __name__ == '__main__':
     target = Pose()
     rover = Pose()
     path = Point()
+    is_enable = False
     dist = -1
     u_max = 0.5
     K_p = 0.5
@@ -94,6 +107,7 @@ if __name__ == '__main__':
 
     rospy.Subscriber('/odometry/filtered', Odometry, rover_pose_update, rover)
     rospy.Service('set_waypoint', SetNewTarget, handle_target_point)
+    rospy.Service('enable_motors', SetMotorEnable, handle_motor_enable)
 
 
     # subscribe the topic /pose to learn local position of the rover
@@ -127,6 +141,7 @@ if __name__ == '__main__':
         msg.linear.x = dot_product * u_max if dot_product > 0 else 0
         msg.angular.z = (alpha_cur - alpha) * K_p
 
-        pub.publish(msg)
+        if is_enable:
+            pub.publish(msg)
 
         rate.sleep()

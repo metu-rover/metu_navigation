@@ -14,7 +14,6 @@ odom0_config: [false,  false,  true,
                false, false, false]
 odom0_differential: false
 odom0_queue_size: 10
-odom0_differential: false
 odom0_relative: false
 
 imu0: /zed2/imu/data
