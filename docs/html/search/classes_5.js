@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ways',['Ways',['../classservice__node_1_1Ways.html',1,'service_node']]]
+  ['ways',['Ways',['../classMapDesign_1_1Ways.html',1,'MapDesign']]]
 ];
