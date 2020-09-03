@@ -64,6 +64,7 @@ def rover_pose_update(msg, rover):
 def handle_target_point(msg):
     global trg
     trg = msg.target
+    return True
 
 if __name__ == '__main__':
     target = Pose()

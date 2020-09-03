@@ -4,6 +4,6 @@
     <rosparam command="load" file="$(find leo_rover_localization)/params/ekf_config.yaml" />
   </node>
 
-  <include file="file $(leo_rover_localization)/launch/robot_controller.launch"/>
+  <include file="$(find leo_rover_localization)/launch/robot_controller.launch"/>
 
 </launch>
