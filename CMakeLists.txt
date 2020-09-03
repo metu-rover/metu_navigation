@@ -51,7 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   GetPathFromMap.srv
-  PlanPathFromMap.srv
+  SetNewTarget.srv
 )
 
 ## Generate services in the 'srv' folder

@@ -1,0 +1,7 @@
+<launch>
+    
+    <node name='path_planner' pkg='leo_rover_localization' type='path_planner_server.py' args="$(find leo_rover_localization)/meshes/leo_map.npz"  />
+
+    <node name='controller' pkg='leo_rover_localization' type='rover_motion.py' />
+    
+</launch>

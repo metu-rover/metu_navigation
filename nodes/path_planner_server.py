@@ -2,8 +2,8 @@
 
 import math
 import rospy
-import nodes.MapDesign
-from nodes.MapDesign import Obstacles
+import MapDesign
+from MapDesign import Obstacles
 import numpy as np
 from collections import defaultdict
 from leo_rover_navigation.srv import GetPathFromMap, PlanPathFromMap
@@ -269,8 +269,8 @@ class MathOperations():
         return m, a
 
 
-def handle_get_path_from_map(msg, mapnp, WayList, mathobses1):
-
+def handle_get_path_from_map(msg):
+    global MapNp, WayList, mathobs1
     for ways in MapNp["Paths"]:
         WayList.append(ways)
 
@@ -311,8 +311,8 @@ if __name__ == "__main__":
         # # restore np.load for future normal usage
         np.load = np_load_old
 
-        rospy.Service('test_service', GetPathFromMap,
-                      handle_get_path_from_map, (MapNp, WayList, mathobs1))
+        rospy.Service('get_path_from_map', GetPathFromMap,
+                      handle_get_path_from_map)
 
         rospy.loginfo_once('requesting... /point_creator')
 

@@ -3,8 +3,9 @@
 import rospy
 import math
 from geometry_msgs.msg import Twist, Pose, PoseStamped, Point
-from leo_rover_navigation.srv import GetPathFromMap, GetPathFromMapRequest
-
+from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
+from leo_rover_localization.srv import SetNewTarget, SetNewTargetRequest
+from nav_msgs.msg import Odometry
 
 def Quad2Euler(q):
     """
@@ -56,6 +57,13 @@ def update_position(msg, rover):
     rover.orientation.z = msg.orientation.z
     rover.orientation.w = msg.orientation.w
 
+def rover_pose_update(msg, rover):
+    rover = msg.pose.pose
+    rover.position.y *= -1
+
+def handle_target_point(msg):
+    global trg
+    trg = msg.target
 
 if __name__ == '__main__':
     target = Pose()
@@ -72,12 +80,20 @@ if __name__ == '__main__':
     # initialize its message container
     pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
     msg = Twist()
-
+    
+    rover = Odometry().pose.pose
+    trg = Point(0, 0, 0)
+        
     # wait until the service point creator to get the next action
     # is ready and get a proxy of it
     rospy.loginfo_once('[rover_controller] is waiting... /get_path_from_map')
     rospy.wait_for_service('/get_path_from_map')
+
     srv = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
+
+    rospy.Subscriber('/odometry/filtered', Odometry, rover_pose_update, rover)
+    rospy.Service('set_waypoint', SetNewTarget, handle_target_point)
+
 
     # subscribe the topic /pose to learn local position of the rover
     # TODO: rospy.Subscriber('pose', PoseStamped, update_position, rover)
@@ -88,8 +104,9 @@ if __name__ == '__main__':
 
         rospy.loginfo(
             '[rover_controller] is requesting... /get_path_from_map')
-        rvr = Point(950, 450, 4)
-        trg = Point(170, 500, 4)
+        
+
+        rvr = Point(rover.position.x, rover.position.y, 0)
 
         if dist == -1 or dist < 5:
             req = GetPathFromMapRequest(rvr, trg)
@@ -97,6 +114,7 @@ if __name__ == '__main__':
 
         dist = math.sqrt((res.next.x - rover.position.x) **
                          2 + (res.next.y - rover.position.y)**2)
+
 
         alpha = math.atan2(res.next.y - rover.position.y,
                            res.next.x - rover.position.x)
