@@ -52,6 +52,7 @@ add_service_files(
   FILES
   GetPathFromMap.srv
   SetNewTarget.srv
+  SetMotorEnable.srv
 )
 
 ## Generate services in the 'srv' folder
