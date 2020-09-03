@@ -13,3 +13,11 @@ to run robot_localization package
 roslaunch leo_rover_localization robot_localization.launch
 ```
 
+to update a new waypoint to rover
+```shell
+rosservice call /set_waypoint "target:
+  x: 10.0
+  y: 0.0
+  z: 0.0" 
+```
+and make sure that you get the `resopnd: True`
