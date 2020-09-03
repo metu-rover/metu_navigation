@@ -6,7 +6,7 @@ import MapDesign
 from MapDesign import Obstacles
 import numpy as np
 from collections import defaultdict
-from leo_rover_localization.srv import GetPathFromMap, PlanPathFromMap
+from leo_rover_localization.srv import GetPathFromMap
 from geometry_msgs.msg import Point
 import itertools
 
