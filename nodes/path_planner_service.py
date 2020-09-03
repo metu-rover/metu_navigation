@@ -297,7 +297,7 @@ if __name__ == "__main__":
     WayList = []
     ObstacleList = []
     mathobs1 = MathOperations()
-    rospy.init_node('test_service_server', anonymous=True)
+    rospy.init_node('path_planner_service', anonymous=True)
 
     if len(rospy.myargv()) == 1:
         rospy.logerr(
