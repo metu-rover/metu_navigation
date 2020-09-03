@@ -53,6 +53,7 @@ add_service_files(
   GetPathFromMap.srv
   SetNewTarget.srv
   SetMotorEnable.srv
+  SwitchWaypoint.srv
 )
 
 ## Generate services in the 'srv' folder

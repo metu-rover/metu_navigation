@@ -1,3 +1,4 @@
-bool dir
+bool is_next
 ---
+bool is_finished
 geometry_msgs/Point new_wp

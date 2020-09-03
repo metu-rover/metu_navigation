@@ -7,8 +7,10 @@ from MapDesign import Obstacles
 import numpy as np
 from collections import defaultdict
 from leo_rover_localization.srv import GetPathFromMap
+from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointResponse
 from geometry_msgs.msg import Point
 import itertools
+
 
 class Points():
 
@@ -271,6 +273,7 @@ class MathOperations():
 
 def handle_get_path_from_map(msg):
     global MapNp, WayList, mathobs1
+    global current_path, index
     for ways in MapNp["Paths"]:
         WayList.append(ways)
 
@@ -278,8 +281,8 @@ def handle_get_path_from_map(msg):
 
     map1 = MapDesign.Map((150, 100), (1920, 1080))
 
-    startPoint = Points((950, 450), path.Ways)
-    endPoint = Points((170, 500), path.Ways)
+    startPoint = Points((msg.curr.x, msg.curr.y), path.Ways)
+    endPoint = Points((msg.dest.x, msg.curr.y), path.Ways)
 
     path.graph = Graph_d()
     for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
@@ -289,14 +292,32 @@ def handle_get_path_from_map(msg):
 
     rospy.loginfo('responsing... /path_planner')
 
-    current_path = path.path[0][1]
-    return Point(current_path[0], current_path[1], 0)
+    current_path = path.path[0]
+    index = 0
+    return True
+
+
+def handle_switch_waypoints(msg):
+    global current_path, index
+
+    if msg.is_next:
+        index += 1
+    else:
+        index -= 1
+
+    if index < len(current_path):
+        waypoint = current_path[index]
+        return SwitchWaypointResponse(False, Point(waypoint[0], waypoint[1], 0))
+    else:
+        return SwitchWaypointResponse(True, Point(-1, -1, -1))
 
 
 if __name__ == "__main__":
     WayList = []
     ObstacleList = []
     mathobs1 = MathOperations()
+    current_path = [Point(0, 0, 0)]
+    index = 0
     rospy.init_node('path_planner_service', anonymous=True)
 
     if len(rospy.myargv()) == 1:
@@ -313,6 +334,9 @@ if __name__ == "__main__":
 
         rospy.Service('get_path_from_map', GetPathFromMap,
                       handle_get_path_from_map)
+        
+        rospy.Service('get_next_waypoint', SwitchWaypoint,
+                      handle_switch_waypoints)
 
         rospy.loginfo_once('requesting... /point_creator')
 

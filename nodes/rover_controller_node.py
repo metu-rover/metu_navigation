@@ -4,8 +4,9 @@ import rospy
 import math
 from geometry_msgs.msg import Twist, Pose, PoseStamped, Point
 from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
-from leo_rover_localization.srv import SetMotorEnable, SetMotorEnableRequest
-from leo_rover_localization.srv import SetNewTarget, SetNewTargetRequest
+from leo_rover_localization.srv import SetMotorEnable
+from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointRequest
+from leo_rover_localization.srv import SetNewTarget
 from nav_msgs.msg import Odometry
 
 def Quad2Euler(q):
@@ -63,8 +64,8 @@ def rover_pose_update(msg, rover):
     rover.position.y *= -1
 
 def handle_target_point(msg):
-    global trg
-    trg = msg.target
+    global target_point
+    target_point = msg.target
     return True
 
 def handle_motor_enable(msg):
@@ -96,22 +97,22 @@ if __name__ == '__main__':
     msg = Twist()
     
     rover = Odometry().pose.pose
-    trg = Point(0, 0, 0)
+    target_point = Point(0, 0, 0)
         
     # wait until the service point creator to get the next action
     # is ready and get a proxy of it
     rospy.loginfo_once('[rover_controller] is waiting... /get_path_from_map')
     rospy.wait_for_service('/get_path_from_map')
 
-    srv = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
+    srv4GetPath = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
+    srv4switchWps = rospy.ServiceProxy('get_next_waypoint', SwitchWaypoint)
 
-    rospy.Subscriber('/odometry/filtered', Odometry, rover_pose_update, rover)
     rospy.Service('set_waypoint', SetNewTarget, handle_target_point)
     rospy.Service('enable_motors', SetMotorEnable, handle_motor_enable)
 
 
-    # subscribe the topic /pose to learn local position of the rover
-    # TODO: rospy.Subscriber('pose', PoseStamped, update_position, rover)
+    # subscribe the topic /odometry/filtered to learn local position of the rover
+    rospy.Subscriber('/odometry/filtered', Odometry, rover_pose_update, rover)
 
     rate = rospy.Rate(10)  # 10 Hz
 
@@ -121,27 +122,36 @@ if __name__ == '__main__':
             '[rover_controller] is requesting... /get_path_from_map')
         
 
-        rvr = Point(rover.position.x, rover.position.y, 0)
+        rover_point = Point(rover.position.x, rover.position.y, 0)
 
-        if dist == -1 or dist < 5:
-            req = GetPathFromMapRequest(rvr, trg)
-            res = srv(req)
+        if dist == -1:
+            req4GetPath = GetPathFromMapRequest(rover_point, target_point)
+            res4path = srv4GetPath(req4GetPath) ## bool
+            req4switchWps = SwitchWaypointRequest(True)
+            res4switchWps = srv4switchWps(req4switchWps)
+        elif dist < 5:
+            req4switchWps = SwitchWaypointRequest(True)
+            res4switchWps = srv4switchWps(req4switchWps)
 
-        dist = math.sqrt((res.next.x - rover.position.x) **
-                         2 + (res.next.y - rover.position.y)**2)
+        if res4switchWps.is_finished and is_enable:
+            rospy.logwarn('rover is near destination...')
+            rospy.logwarn('please set another waypoint...')
+            is_enable = False
+        elif is_enable:
+            dist = math.sqrt((res4switchWps.new_wp.x - rover.position.x) **
+                         2 + (res4switchWps.new_wp.y - rover.position.y)**2)
 
 
-        alpha = math.atan2(res.next.y - rover.position.y,
-                           res.next.x - rover.position.x)
-        alpha_cur = Quad2Euler(rover.orientation)[2]
+            alpha = math.atan2(res4switchWps.new_wp.y - rover.position.y,
+                            res4switchWps.new_wp.x - rover.position.x)
+            alpha_cur = Quad2Euler(rover.orientation)[2]
 
-        dot_product = (math.cos(alpha) * math.cos(alpha_cur) +
-                       math.sin(alpha) * math.sin(alpha_cur))
+            dot_product = (math.cos(alpha) * math.cos(alpha_cur) +
+                        math.sin(alpha) * math.sin(alpha_cur))
 
-        msg.linear.x = dot_product * u_max if dot_product > 0 else 0
-        msg.angular.z = (alpha_cur - alpha) * K_p
-
-        if is_enable:
+            msg.linear.x = dot_product * u_max if dot_product > 0 else 0
+            msg.angular.z = (alpha_cur - alpha) * K_p
+            
             pub.publish(msg)
 
         rate.sleep()
