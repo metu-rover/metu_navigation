@@ -180,7 +180,7 @@ class Dijkstra():
             next_destinations = {
                 node: shortest_paths[node] for node in shortest_paths if node not in visited}
             if not next_destinations:
-                return "Route Not Possible", 0
+                return "Route Not Possible", -1
             # next node is the destination with the lowest roughness
             current_node = min(next_destinations,
                                key=lambda k: next_destinations[k][1])
@@ -292,9 +292,12 @@ def handle_get_path_from_map(msg):
 
     rospy.loginfo('responsing... /path_planner')
 
-    current_path = path.path[0]
-    index = 0
-    return True
+    if sum_cost == -1:
+        return False
+    else:
+        current_path = path.path[0]
+        index = 0
+        return True
 
 
 def handle_switch_waypoints(msg):
