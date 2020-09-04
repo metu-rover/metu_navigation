@@ -17,9 +17,9 @@ to allow rover_controller_node.py publishing to cmd_vel
 rosservice call /enable_motors "enable: True"
 ```
 
-to update a new waypoint to rover
+to update the rover with a new destination
 ```shell
-rosservice call /set_waypoint "target:
+rosservice call /set_destination "target:
   x: 10.0
   y: 0.0
   z: 0.0" 
