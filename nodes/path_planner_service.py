@@ -292,10 +292,11 @@ def handle_get_path_from_map(msg):
 
     rospy.loginfo('responsing... /path_planner')
 
+
     if sum_cost == -1:
         return False
     else:
-        current_path = path.path[0]
+        current_path = path.path[0][:-1]
         index = 0
         return True
 
@@ -308,7 +309,7 @@ def handle_switch_waypoints(msg):
     else:
         index -= 1
 
-    if index < len(current_path):
+    if 0 <= index < len(current_path):
         waypoint = current_path[index]
         return SwitchWaypointResponse(False, Point(waypoint[0], waypoint[1], 0))
     else:
