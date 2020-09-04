@@ -6,9 +6,10 @@ from geometry_msgs.msg import Twist, Pose, PoseStamped, Point
 from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
 from leo_rover_localization.srv import SetMotorEnable
 from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointRequest
-from leo_rover_localization.srv import SetNewTarget
+from leo_rover_localization.srv import SetDestination
 from nav_msgs.msg import Odometry
 
+epsilon = 0.25
 
 def Quad2Euler(q):
     """
@@ -66,14 +67,14 @@ def rover_pose_update(msg, rover):
     rover.position.y *= -1
 
 
-def handle_set_waypoint(msg):
+def handle_set_destination(msg):
     global rover_point
-    req4GetPath = GetPathFromMapRequest(rover_point, msg.target)
+    req4GetPath = GetPathFromMapRequest(rover_point, msg.destination)
     res4GetPath = srv4GetPath(req4GetPath)
 
     if res4GetPath.is_updated_map:
         global target_point
-        target_point = msg.target
+        target_point = msg.destination
         return True
     else:
         return False
@@ -98,7 +99,7 @@ if __name__ == '__main__':
     is_enable = False
     dist = -1
     u_max = 0.5
-    K_p = 0.5
+    K_p = 1.0
 
     # initialize node
     rospy.init_node('rover_controller', anonymous=True)
@@ -119,7 +120,7 @@ if __name__ == '__main__':
     srv4GetPath = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
     srv4switchWps = rospy.ServiceProxy('get_next_waypoint', SwitchWaypoint)
 
-    rospy.Service('set_waypoint', SetNewTarget, handle_set_waypoint)
+    rospy.Service('set_destination', SetDestination, handle_set_destination)
     rospy.Service('enable_motors', SetMotorEnable, handle_enable_motors)
 
     # subscribe the topic /odometry/filtered to learn local position of the rover
@@ -139,9 +140,9 @@ if __name__ == '__main__':
             res4path = srv4GetPath(req4GetPath)  # bool
             req4switchWps = SwitchWaypointRequest(True)
             res4switchWps = srv4switchWps(req4switchWps)
-            dist = math.sqrt((res4switchWps.new_wp.x - rover.position.x) **
-                             2 + (res4switchWps.new_wp.y - rover.position.y)**2)
-        elif dist < 5:
+            dist = res4switchWps.distance
+            
+        elif dist < epsilon:
             req4switchWps = SwitchWaypointRequest(True)
             res4switchWps = srv4switchWps(req4switchWps)
 

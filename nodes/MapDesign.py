@@ -39,6 +39,7 @@ math=MathOperations()
 class Map():
     def __init__(self,mapsize=tuple,screensize=tuple):                     
         screenx,screeny,multiply=self.findMapSize(mapsize,screensize) 
+        self.multi = multiply
         # it is for define a map that fit the screen but include as much pixel as could be and correct path length in world    
         self.imagesize=(screenx,screeny)   
         self.pixelsize=round(1/multiply,3) #every pixel in the image equals to this length in the world

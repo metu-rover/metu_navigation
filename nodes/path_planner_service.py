@@ -272,17 +272,17 @@ class MathOperations():
 
 
 def handle_get_path_from_map(msg):
-    global MapNp, WayList, mathobs1
+    global MapNp, WayList, mathobs1, map1
     global current_path, index
     for ways in MapNp["Paths"]:
         WayList.append(ways)
 
     path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
 
-    map1 = MapDesign.Map((150, 100), (1920, 1080))
+    
 
-    startPoint = Points((msg.curr.x, msg.curr.y), path.Ways)
-    endPoint = Points((msg.dest.x, msg.curr.y), path.Ways)
+    startPoint = Points((msg.curr.x * map1.multi, msg.curr.y * map1.multi), path.Ways)
+    endPoint = Points((msg.dest.x * map1.multi, msg.curr.y * map1.multi), path.Ways)
 
     path.graph = Graph_d()
     for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
@@ -292,17 +292,16 @@ def handle_get_path_from_map(msg):
 
     rospy.loginfo('responsing... /path_planner')
 
-
     if sum_cost == -1:
         return False
     else:
-        current_path = path.path[0][:-1]
-        index = 0
+        current_path = path.path # [[(2-tuple),(2-tuple),Float],...,[(2-tuple),(2-tuple),Float]]
+        index = -1
         return True
 
 
 def handle_switch_waypoints(msg):
-    global current_path, index
+    global current_path, index, map1
 
     if msg.is_next:
         index += 1
@@ -310,16 +309,19 @@ def handle_switch_waypoints(msg):
         index -= 1
 
     if 0 <= index < len(current_path):
-        waypoint = current_path[index]
-        return SwitchWaypointResponse(False, Point(waypoint[0], waypoint[1], 0))
+        waypoint = current_path[index][1]
+        distanse = current_path[index][2] / map1.multi
+
+        return SwitchWaypointResponse(False, distanse, Point(waypoint[0] / map1.multi, waypoint[1] / map1.multi, 0))
     else:
-        return SwitchWaypointResponse(True, Point(-1, -1, -1))
+        return SwitchWaypointResponse(True, -1, Point(-1, -1, -1))
 
 
 if __name__ == "__main__":
     WayList = []
     ObstacleList = []
     mathobs1 = MathOperations()
+    map1 = MapDesign.Map((150, 100), (1920, 1080))
     current_path = [Point(0, 0, 0)]
     index = 0
     rospy.init_node('path_planner_service', anonymous=True)

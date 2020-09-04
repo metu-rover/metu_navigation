@@ -1,4 +1,5 @@
 bool is_next
 ---
 bool is_finished
+float distance
 geometry_msgs/Point new_wp

@@ -51,7 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   GetPathFromMap.srv
-  SetNewTarget.srv
+  SetDestination.srv
   SetMotorEnable.srv
   SwitchWaypoint.srv
 )
@@ -73,7 +73,8 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  geometry_msgs     std_msgs
+  geometry_msgs
+  std_msgs
 )
 
 ################################################
