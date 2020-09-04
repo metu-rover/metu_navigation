@@ -72,7 +72,7 @@ def handle_set_destination(msg):
     req4GetPath = GetPathFromMapRequest(rover_point, msg.destination)
     res4GetPath = srv4GetPath(req4GetPath)
 
-    if res4GetPath.is_updated_map:
+    if res4GetPath.is_path_updated:
         global target_point
         target_point = msg.destination
         return True
