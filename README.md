@@ -20,7 +20,7 @@ rosservice call /enable_motors "enable: True"
 to update the rover with a new destination
 ```shell
 rosservice call /set_destination "destination:
-  x: 10.0
+  x: 0.0
   y: 0.0
   z: 0.0" 
 ```

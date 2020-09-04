@@ -297,6 +297,7 @@ def handle_get_path_from_map(msg):
     else:
         current_path = path.path # [[(2-tuple),(2-tuple),Float],...,[(2-tuple),(2-tuple),Float]]
         index = -1
+        rospy.logwarn(current_path)
         return True
 
 
@@ -308,9 +309,13 @@ def handle_switch_waypoints(msg):
     else:
         index -= 1
 
+    rospy.logwarn('index:%d len:%d' % (index, len(current_path)))
+
     if 0 <= index < len(current_path):
         waypoint = current_path[index][1]
         distanse = current_path[index][2] / map1.multi
+
+        rospy.logwarn(current_path)
 
         return SwitchWaypointResponse(False, distanse, Point(waypoint[0] / map1.multi, waypoint[1] / map1.multi, 0))
     else:
@@ -323,7 +328,7 @@ if __name__ == "__main__":
     mathobs1 = MathOperations()
     map1 = MapDesign.Map((150, 100), (1920, 1080))
     current_path = [Point(0, 0, 0)]
-    index = 0
+    index = -1
     rospy.init_node('path_planner_service', anonymous=True)
 
     if len(rospy.myargv()) == 1:
