@@ -292,18 +292,8 @@ def handle_get_path_from_map(msg):
 
     rospy.loginfo('responsing... /path_planner')
 
-    current=path.path[0]
-    if current=="R":
-        current_path=path.path[0]
-    else:
-        a=[[0,0],[0,0],path.path[0][2]]
-        a[0][0]=current[0][0]-200
-        a[0][1]=current[0][1]-324
-        a[1][0]=current[1][0]-200
-        a[1][1]=current[1][1]-324
-        a[0]=tuple(a[0])
-        a[1]=tuple(a[1])
-        current_path=a
+
+    current_path=path.path[0]
    
     index = 0
     return True
