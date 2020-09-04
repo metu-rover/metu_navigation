@@ -293,8 +293,7 @@ def handle_get_path_from_map(msg):
     rospy.loginfo('responsing... /path_planner')
 
     current_path = path.path[0]
-    current_path[0] = current_path[0]-204
-    current_path[1] = current_path[0]-314
+   
     index = 0
     return True
 
