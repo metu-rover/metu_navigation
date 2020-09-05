@@ -8,7 +8,7 @@ import numpy as np
 from collections import defaultdict
 from leo_rover_localization.srv import GetPathFromMap
 from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointResponse
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Pose2D
 import itertools
 
 
@@ -280,9 +280,9 @@ def handle_get_path_from_map(msg):
     path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
 
     startPoint = Points(
-        (msg.curr.x * map1.multi, msg.curr.y * map1.multi), path.Ways)
+        (msg.target.x * map1.multi, msg.target.y * map1.multi), path.Ways)
     endPoint = Points(
-        (msg.dest.x * map1.multi, msg.dest.y * map1.multi), path.Ways)
+        (msg.destin.x * map1.multi, msg.destin.y * map1.multi), path.Ways)
 
     path.graph = Graph_d()
     for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
@@ -290,24 +290,24 @@ def handle_get_path_from_map(msg):
     path.path, sum_cost = path.DijkstrasAlgorithm(
         startPoint, endPoint, path.Ways)
 
-    rospy.loginfo('responsing... /path_planner')
+    rospy.loginfo(
+            '[get_path_from_map] is responsing...')
 
     if sum_cost == -1:
         return False
     else:
         # [[(2-tuple),(2-tuple),Float],...,[(2-tuple),(2-tuple),Float]]
-        current_path = [[(wp[0][0] / map1.multi, wp[0][1] / map1.multi), 
-                        (wp[1][0] / map1.multi, wp[1][1] / map1.multi), 
-                        wp[2] / map1.multi] for wp in path.path]
+        current_path = [[(wp[0][0] / map1.multi, wp[0][1] / map1.multi),
+                         (wp[1][0] / map1.multi, wp[1][1] / map1.multi),
+                         wp[2] / map1.multi] for wp in path.path]
         index = -1
-        rospy.logwarn(current_path)
         return True
 
 
-def handle_switch_waypoints(msg):
+def handle_switch_waypoint(msg):
     global current_path, index, map1
 
-    if msg.is_next:
+    if msg.is_increment:
         index += 1
     else:
         index -= 1
@@ -318,11 +318,13 @@ def handle_switch_waypoints(msg):
         waypoint = current_path[index][1]
         distanse = current_path[index][2]
 
-        rospy.logwarn(current_path)
+        rospy.loginfo(current_path)
+        rospy.loginfo(
+            '[switch_waypoint] is responsing...')
 
-        return SwitchWaypointResponse(False, distanse, Point(waypoint[0], waypoint[1], 0))
+        return SwitchWaypointResponse(False, distanse, Pose2D(waypoint[0], waypoint[1], 0))
     else:
-        return SwitchWaypointResponse(True, -1, Point(-1, -1, -1))
+        return SwitchWaypointResponse(True, -1, Pose2D(0, 0, 0))
 
 
 if __name__ == "__main__":
@@ -330,13 +332,13 @@ if __name__ == "__main__":
     ObstacleList = []
     mathobs1 = MathOperations()
     map1 = MapDesign.Map((150, 100), (1920, 1080))
-    current_path = [Point(0, 0, 0)]
+    current_path = [Pose2D(0, 0, 0)]
     index = -1
     rospy.init_node('path_planner_service', anonymous=True)
 
     if len(rospy.myargv()) == 1:
         rospy.logerr(
-            'usage: rosrun leo_rover_localization service_node.py <path_to_map.npz>')
+            'usage: rosrun leo_rover_localization path_planner_service.py <path_to_map.npz>')
     else:
         np_load_old = np.load
         # modify the default parameters of np.loadWe
@@ -348,10 +350,12 @@ if __name__ == "__main__":
 
         rospy.Service('get_path_from_map', GetPathFromMap,
                       handle_get_path_from_map)
+        rospy.loginfo_once(
+            '`get_path_from_map` is running at `path_planner_service`')
 
-        rospy.Service('get_next_waypoint', SwitchWaypoint,
-                      handle_switch_waypoints)
-
-        rospy.loginfo_once('requesting... /point_creator')
+        rospy.Service('switch_waypoint', SwitchWaypoint,
+                      handle_switch_waypoint)
+        rospy.loginfo_once(
+            '`switch_waypoint` is running at `path_planner_service`')
 
         rospy.spin()
