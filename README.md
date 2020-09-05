@@ -14,12 +14,12 @@ roslaunch leo_rover_localization robot_localization.launch
 
 to allow rover_controller_node.py publishing to cmd_vel
 ```shell
-rosservice call /enable_motors "enable: True"
+rosservice call /metu_rover/enable_motors "enable: True"
 ```
 
 to update the rover with a new destination
 ```shell
-rosservice call /set_destination "destination:
+rosservice call /metu_rover/set_destination "destination:
   x: 0.0
   y: 0.0
   z: 0.0" 
