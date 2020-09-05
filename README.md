@@ -22,6 +22,6 @@ to update the rover with a new destination
 rosservice call /metu_rover/set_destination "destination:
   x: 0.0
   y: 0.0
-  z: 0.0" 
+  theta: 0.0" 
 ```
-and make sure that you get the `resopnd: True`
+and make sure that you get the `resopnd: true`
