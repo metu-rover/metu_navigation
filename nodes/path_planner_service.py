@@ -279,10 +279,10 @@ def handle_get_path_from_map(msg):
 
     path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
 
-    
-
-    startPoint = Points((msg.curr.x * map1.multi, msg.curr.y * map1.multi), path.Ways)
-    endPoint = Points((msg.dest.x * map1.multi, msg.curr.y * map1.multi), path.Ways)
+    startPoint = Points(
+        (msg.curr.x * map1.multi, msg.curr.y * map1.multi), path.Ways)
+    endPoint = Points(
+        (msg.dest.x * map1.multi, msg.dest.y * map1.multi), path.Ways)
 
     path.graph = Graph_d()
     for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
@@ -295,7 +295,10 @@ def handle_get_path_from_map(msg):
     if sum_cost == -1:
         return False
     else:
-        current_path = path.path # [[(2-tuple),(2-tuple),Float],...,[(2-tuple),(2-tuple),Float]]
+        # [[(2-tuple),(2-tuple),Float],...,[(2-tuple),(2-tuple),Float]]
+        current_path = [[(wp[0][0] / map1.multi, wp[0][1] / map1.multi), 
+                        (wp[1][0] / map1.multi, wp[1][1] / map1.multi), 
+                        wp[2] / map1.multi] for wp in path.path]
         index = -1
         rospy.logwarn(current_path)
         return True
@@ -313,11 +316,11 @@ def handle_switch_waypoints(msg):
 
     if 0 <= index < len(current_path):
         waypoint = current_path[index][1]
-        distanse = current_path[index][2] / map1.multi
+        distanse = current_path[index][2]
 
         rospy.logwarn(current_path)
 
-        return SwitchWaypointResponse(False, distanse, Point(waypoint[0] / map1.multi, waypoint[1] / map1.multi, 0))
+        return SwitchWaypointResponse(False, distanse, Point(waypoint[0], waypoint[1], 0))
     else:
         return SwitchWaypointResponse(True, -1, Point(-1, -1, -1))
 
@@ -345,7 +348,7 @@ if __name__ == "__main__":
 
         rospy.Service('get_path_from_map', GetPathFromMap,
                       handle_get_path_from_map)
-        
+
         rospy.Service('get_next_waypoint', SwitchWaypoint,
                       handle_switch_waypoints)
 

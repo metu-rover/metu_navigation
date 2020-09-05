@@ -9,7 +9,7 @@ from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointRequest
 from leo_rover_localization.srv import SetDestination
 from nav_msgs.msg import Odometry
 
-epsilon = 0.25
+epsilon = 0.15
 
 
 def Quad2Euler(q):
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     is_enable = False
     distance = -1
     u_max = 0.5
-    K_p = 1.0
+    K_p = .4
 
     # initialize node
     rospy.init_node('rover_controller', anonymous=True)
@@ -149,7 +149,7 @@ if __name__ == '__main__':
             else:
                 rover_point = Point(rover.position.x, rover.position.y, 0)
 
-                rospy.logwarn('x:%2.1f y:%2.1f z:%2.1f' % (rover.position.x, rover.position.y, Quad2Euler(rover.orientation)[2]))
+                rospy.logwarn('x:%2.1f y:%2.1f z:%2.1f' % (rover.position.x, rover.position.y, Quad2Euler(rover.orientation)[2] * 180 / math.pi))
                 distance = math.sqrt((res4switchWps.new_wp.x - rover.position.x) **
                                      2 + (res4switchWps.new_wp.y - rover.position.y)**2)
 
