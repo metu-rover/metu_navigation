@@ -49,7 +49,7 @@ if __name__ == '__main__':
     is_enable = False
     distance = -1
     u_max = 0.5
-    K_p = -0.5
+    K_p = math.pi / 3
 
     # initialize node
     rospy.init_node('rover_controller', anonymous=True)
@@ -102,7 +102,7 @@ if __name__ == '__main__':
                                math.sin(alpha) * math.sin(rover.theta))
 
                 msg.linear.x = dot_product * u_max if dot_product > 0 else 0
-                msg.angular.z = (rover.theta - alpha) * K_p
+                msg.angular.z = (alpha - rover.theta) * K_p
                 rospy.logwarn_throttle(
                     0.1, 'x:%2.1f y:%2.1f theta:%2.1f' % (rover.x, rover.y, rover.theta))
 

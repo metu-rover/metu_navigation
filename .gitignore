@@ -1,2 +1,3 @@
 .vscode
 nodes/*.pyc
+nodes/__pycache__/

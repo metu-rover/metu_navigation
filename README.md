@@ -1,4 +1,4 @@
-# metu-rover
+# leo-rover-localization
 
 to run bot robot_localization package, controller_node.py, and path_planner_service
 
@@ -14,12 +14,12 @@ roslaunch leo_rover_localization robot_localization.launch
 
 to allow rover_controller_node.py publishing to cmd_vel
 ```shell
-rosservice call /metu_rover/enable_motors "enable: True"
+rosservice call /leo_localization/enable_motors "enable: True"
 ```
 
 to update the rover with a new destination
 ```shell
-rosservice call /metu_rover/set_destination "destination:
+rosservice call /leo_localization/set_destination "destination:
   x: 0.0
   y: 0.0
   theta: 0.0" 
