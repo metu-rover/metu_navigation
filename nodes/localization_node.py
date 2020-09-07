@@ -66,7 +66,7 @@ def callback_locomotion(msg, vel):
 def callback_artag_marker(msg, args):
     odm, cum, vel = args
     
-    if abs(vel.linear.x) < epsilon and abs(ve.angluar.z) < 2 * epsilon:
+    if abs(vel.linear.x) < epsilon and abs(vel.angluar.z) < 2 * epsilon:
         cum.x = msg.transform.translation.x - odm.pose.pose.position.x
         cum.y = msg.transform.translation.y - odm.pose.pose.position.y
         cum.theta = Quad2Euler(msg.transform.rotation)[2] - \
