@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     rospy.wait_for_message('odometry/filtered', Odometry, timeout=60)
 
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
         msg.x = total.x + odm.pose.pose.position.x
