@@ -291,16 +291,19 @@ def handle_get_path_from_map(msg):
         startPoint, endPoint, path.Ways)
 
     rospy.loginfo(
-            '[get_path_from_map] is responsing...')
+        '[get_path_from_map] is responsing...')
 
     if sum_cost == -1:
         return False
     else:
-        # [[(2-tuple),(2-tuple),Float],...,[(2-tuple),(2-tuple),Float]]
-        current_path = [[(wp[0][0] / map1.multi, wp[0][1] / map1.multi),
-                         (wp[1][0] / map1.multi, wp[1][1] / map1.multi),
-                         wp[2] / map1.multi] for wp in path.path]
-        index = -1
+        current_path = [msg.target]
+
+        # [[2-tuple,2-tuple,float],[2-tuple,2-tuple,float], ..., [2-tuple,2-tuple,float]]
+        for wp in path.path:
+            current_path.append(Pose2D(wp[1][0] / map1.multi, wp[1][1] / map1.multi, math.atan2(
+                wp[1][1] / map1.multi - current_path[-1].y, wp[1][0] / map1.multi - current_path[-1].x)))
+
+        index = 0
         return True
 
 
@@ -315,14 +318,25 @@ def handle_switch_waypoint(msg):
     rospy.logwarn('index:%d len:%d' % (index, len(current_path)))
 
     if 0 <= index < len(current_path):
-        waypoint = current_path[index][1]
-        distanse = current_path[index][2]
+        waypoint = current_path[index]
+        if msg.is_increment:
+            distanse = math.sqrt((current_path[index].x - current_path[index - 1].x)**2 + \
+                                 (current_path[index].y - current_path[index - 1].y)**2)
+        else:
+            distanse = math.sqrt((current_path[index].x - current_path[index + 1].x)**2 + \
+                                 (current_path[index].y - current_path[index + 1].y)**2)
+
+        if msg.is_increment:
+            if waypoint.theta < 0:
+                waypoint.theta += math.pi
+            else:
+                waypoint.theta -= math.pi
 
         rospy.loginfo(current_path)
         rospy.loginfo(
             '[switch_waypoint] is responsing...')
 
-        return SwitchWaypointResponse(False, distanse, Pose2D(waypoint[0], waypoint[1], 0))
+        return SwitchWaypointResponse(False, distanse, waypoint)
     else:
         return SwitchWaypointResponse(True, -1, Pose2D(0, 0, 0))
 

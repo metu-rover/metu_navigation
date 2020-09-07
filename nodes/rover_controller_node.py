@@ -89,7 +89,8 @@ if __name__ == '__main__':
                 res4switchWps = srv4switchWps(req4switchWps)
                 if res4switchWps.is_finished:
                     is_enable = False
-                    rospy.logwarn('[rover] balaca...')
+                    pub.publish(Twist())
+                    rospy.logwarn('[rover] reached...')
                 distance = res4switchWps.distance
             else:
                 distance = math.sqrt((res4switchWps.waypoint.x - rover.x) ** 2 +
