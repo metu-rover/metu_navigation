@@ -3,6 +3,6 @@
     <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
       <rosparam command="load" file="$(find leo_rover_localization)/params/ekf_config.yaml" />
     </node>
-    <node name='rover_localization' pkg='leo_rover_localization' type='localization_node.py' />
+    <node pkg='leo_rover_localization' type='rover_localization_node.py' name='rover_localization' />
   </group>
 </launch>
