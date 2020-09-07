@@ -2,9 +2,10 @@
 import math
 import rospy
 import tf2_ros
-from geometry_msgs.msg import TransformStamped, PoseStamped, Pose2D
+from geometry_msgs.msg import TransformStamped, PoseStamped, Pose2D, Twist
 from nav_msgs.msg import Odometry
 
+epsilon = 0.05
 
 def Quad2Euler(q):
     """
@@ -57,13 +58,19 @@ def callback_localization(msg, odm):
     odm.pose.pose.orientation.w = msg.pose.pose.orientation.w
 
 
-def callback_artag_marker(msg, args):
-    odm, cum = args
+def callback_locomotion(msg, vel):
+    vel.linear.x = msg.linear.x
+    vel.angular.z = msg.angular.z
 
-    cum.x = msg.transform.translation.x - odm.pose.pose.position.x
-    cum.y = msg.transform.translation.y - odm.pose.pose.position.y
-    cum.theta = Quad2Euler(msg.transform.rotation)[2] - \
-        Quad2Euler(odm.pose.pose.orientation)[2]
+
+def callback_artag_marker(msg, args):
+    odm, cum, vel = args
+    
+    if abs(vel.linear.x) < epsilon and abs(ve.angluar.z) < 2 * epsilon:
+        cum.x = msg.transform.translation.x - odm.pose.pose.position.x
+        cum.y = msg.transform.translation.y - odm.pose.pose.position.y
+        cum.theta = Quad2Euler(msg.transform.rotation)[2] - \
+            Quad2Euler(odm.pose.pose.orientation)[2]
 
 
 if __name__ == '__main__':
@@ -72,17 +79,15 @@ if __name__ == '__main__':
     msg = Pose2D()
     total = Pose2D()
     odm = Odometry()
+    vel = Twist()
 
     # rufat's node
     rospy.Subscriber('odometry/filtered', Odometry, callback_localization, odm)
 
     # Arda's node
-    # tf_buffer = tf2_ros.Buffer()
-    # tf_listener = tf2_ros.TransformListener(tf_buffer)
-
     rospy.Subscriber('/base_link_transform', TransformStamped,
-                     callback_artag_marker, (odm, total))
-
+                     callback_artag_marker, (odm, total, vel))
+    rospy.Subscriber('/wheel_odom', Twist, callback_locomotion)
 
     pub = rospy.Publisher('gridpose', Pose2D, queue_size=10)
 

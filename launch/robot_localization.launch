@@ -4,7 +4,5 @@
       <rosparam command="load" file="$(find leo_rover_localization)/params/ekf_config.yaml" />
     </node>
     <node name='localiation_purge' pkg='leo_rover_localization' type='localization_node.py' />
-
-    <include file="$(find leo_rover_localization)/launch/robot_controller.launch" />
   </group>
 </launch>
