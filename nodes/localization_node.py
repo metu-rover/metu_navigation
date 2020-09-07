@@ -2,7 +2,7 @@
 import math
 import rospy
 import tf2_ros
-from geometry_msgs.msg import TransformStamped, PoseStamped, Pose2D, Twist
+from geometry_msgs.msg import TransformStamped, PoseStamped, Pose2D, Twist, TwistStamped
 from nav_msgs.msg import Odometry
 
 epsilon = 0.05
@@ -59,14 +59,14 @@ def callback_localization(msg, odm):
 
 
 def callback_locomotion(msg, vel):
-    vel.linear.x = msg.linear.x
-    vel.angular.z = msg.angular.z
+    vel.linear.x = msg.twist.linear.x
+    vel.angular.z = msg.twist.angular.z
 
 
 def callback_artag_marker(msg, args):
     odm, cum, vel = args
     
-    if abs(vel.linear.x) < epsilon and abs(vel.angluar.z) < 2 * epsilon:
+    if abs(vel.linear.x) < epsilon and abs(vel.angular.z) < 2 * epsilon:
         cum.x = msg.transform.translation.x - odm.pose.pose.position.x
         cum.y = msg.transform.translation.y - odm.pose.pose.position.y
         cum.theta = Quad2Euler(msg.transform.rotation)[2] - \
@@ -87,20 +87,19 @@ if __name__ == '__main__':
     # Arda's node
     rospy.Subscriber('/base_link_transform', TransformStamped,
                      callback_artag_marker, (odm, total, vel))
-    rospy.Subscriber('/wheel_odom', Twist, callback_locomotion)
+    rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
 
     pub = rospy.Publisher('gridpose', Pose2D, queue_size=10)
 
     rospy.wait_for_message('odometry/filtered', Odometry, timeout=60)
 
-    rate = rospy.Rate(100)
+    rate = rospy.Rate(10)
 
     while not rospy.is_shutdown():
-        # tf_to_ground_transform = tf_buffer.lookup_transform('world', 'base_link_coordinates', rospy.Time())
-        
         msg.x = total.x + odm.pose.pose.position.x
         msg.y = total.y + odm.pose.pose.position.y
         msg.theta = total.theta + Quad2Euler(odm.pose.pose.orientation)[2]
-        pub.publish(msg)
         
+        pub.publish(msg)
+
         rate.sleep()

@@ -89,7 +89,7 @@ if __name__ == '__main__':
                 res4switchWps = srv4switchWps(req4switchWps)
                 if res4switchWps.is_finished:
                     is_enable = False
-                    rospy.logwarn('[rover] yerimdeyim...')
+                    rospy.logwarn('[rover] balaca...')
                 distance = res4switchWps.distance
             else:
                 distance = math.sqrt((res4switchWps.waypoint.x - rover.x) ** 2 +
@@ -107,8 +107,4 @@ if __name__ == '__main__':
                     0.1, 'x:%2.1f y:%2.1f theta:%2.1f' % (rover.x, rover.y, rover.theta))
 
                 pub.publish(msg)
-        else:
-            # wait for new destination
-            pass
-
         rate.sleep()
