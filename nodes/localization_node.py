@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import math
 import rospy
+import tf2_ros
 from geometry_msgs.msg import TransformStamped, PoseStamped, Pose2D
 from nav_msgs.msg import Odometry
 
@@ -68,15 +69,18 @@ def callback_artag_marker(msg, args):
 if __name__ == '__main__':
     rospy.init_node('rover_localization', anonymous=True)
 
+    msg = Pose2D()
     total = Pose2D()
     odm = Odometry()
-    msg = Pose2D()
 
     # rufat's node
     rospy.Subscriber('odometry/filtered', Odometry, callback_localization, odm)
 
     # Arda's node
-    rospy.Subscriber('transform', TransformStamped,
+    # tf_buffer = tf2_ros.Buffer()
+    # tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+    rospy.Subscriber('/base_link_transform', TransformStamped,
                      callback_artag_marker, (odm, total))
 
 
@@ -87,6 +91,8 @@ if __name__ == '__main__':
     rate = rospy.Rate(100)
 
     while not rospy.is_shutdown():
+        # tf_to_ground_transform = tf_buffer.lookup_transform('world', 'base_link_coordinates', rospy.Time())
+        
         msg.x = total.x + odm.pose.pose.position.x
         msg.y = total.y + odm.pose.pose.position.y
         msg.theta = total.theta + Quad2Euler(odm.pose.pose.orientation)[2]
