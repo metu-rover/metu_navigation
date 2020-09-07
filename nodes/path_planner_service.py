@@ -303,6 +303,10 @@ def handle_get_path_from_map(msg):
             current_path.append(Pose2D(wp[1][0] / map1.multi, wp[1][1] / map1.multi, math.atan2(
                 wp[1][1] / map1.multi - current_path[-1].y, wp[1][0] / map1.multi - current_path[-1].x)))
 
+
+        for path in current_path:
+            rospy.loginfo('x:%3.2f y:%3.2f t:%3.2f' % (path.x, path.y, path.theta))
+
         index = 0
         return True
 
