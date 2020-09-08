@@ -3,7 +3,7 @@
 import math
 import rospy
 import MapDesign
-from MapDesign import Obstacles
+from MapDesign import Obstacles,map1
 import numpy as np
 from collections import defaultdict
 from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapResponse
@@ -243,22 +243,24 @@ class MathOperations():
         else:
             return np.sqrt(((Coords[1][1] - Coords[0][1]) ** 2) + ((Coords[1][0] - Coords[0][0]) ** 2))
 
-    def doesCollide(self, Pairs=[()], Edges=[()]):
-        a1 = Pairs[1][1]-Pairs[0][1]
-        b1 = Pairs[0][0]-Pairs[1][0]
-        c1 = a1*Pairs[0][0] + b1*Pairs[0][1]
-        a2 = Edges[1][1]-Edges[0][1]
-        b2 = Edges[0][0]-Edges[1][0]
-        c2 = a2*Edges[0][0] + b2*Edges[0][1]
-        det = a1*b2-a2*b1
-        if(det != 0):
-            x = (b2*c1 - b1*c2)/det
-            y = (a1*c2 - a2*c1)/det
-            if(x >= min(Pairs[0][0], Pairs[1][0]) and x <= max(Pairs[0][0], Pairs[1][0]) and x >= min(Edges[0][0], Edges[1][0]) and x <= max(Edges[0][0], Edges[1][0])
-                    and y >= min(Pairs[0][1], Pairs[1][1]) and y <= max(Pairs[0][1], Pairs[1][1])
-                    and y >= min(Edges[0][1], Edges[1][1]) and y <= max(Edges[0][1], Edges[1][1])):
-                return True
+      
+    def doesCollide(self,Pairs=[()], Edges=[()]):
+        #Original form of the function is under the all functions
+        #Does collide function is used for check two lines if they collide or not
+        if ((Edges[1][1] - Edges[0][1]) * (Pairs[1][0] - Pairs[0][0]) - (Edges[1][0] - Edges[0][0]) * (
+            Pairs[1][1] - Pairs[0][1])) == 0:
             return False
+        uA = ((Edges[1][0] - Edges[0][0]) * (Pairs[0][1] - Edges[0][1]) - (Edges[1][1] - Edges[0][1]) * (
+                Pairs[0][0] - Edges[0][0])) / (
+                     (Edges[1][1] - Edges[0][1]) * (Pairs[1][0] - Pairs[0][0]) - (Edges[1][0] - Edges[0][0]) * (
+                         Pairs[1][1] - Pairs[0][1]))
+        uB = ((Pairs[1][0] - Pairs[0][0]) * (Pairs[0][1] - Edges[0][1]) - (Pairs[1][1] - Pairs[0][1]) * (
+                Pairs[0][0] - Edges[0][0])) / (
+                     (Edges[1][1] - Edges[0][1]) * (Pairs[1][0] - Pairs[0][0]) - (Edges[1][0] - Edges[0][0]) * (
+                         Pairs[1][1] - Pairs[0][1]))
+        if (uA >= 0 and uA <= 1 and uB >= 0 and uB <= 1):
+            return True
+        return False
 
     def functionsOfEdges(self, Edges=[]):
         # f(x)=mx+a
@@ -278,17 +280,20 @@ def handle_get_path_from_map(msg):
         WayList.append(ways)
 
     path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
-
+    outsqare = ((0,0),map1.mapsizepixel)
     startPoint = Points(
-        (msg.target.x * map1.multi, msg.target.y * map1.multi), path.Ways)
-    endPoint = Points(
-        (msg.destin.x * map1.multi, msg.destin.y * map1.multi), path.Ways)
+        ((msg.target.x * map1.multi)+13, (msg.target.y * map1.multi)+367), path.Ways)
 
-    path.graph = Graph_d()
-    for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
-        path.graph.AddEdges(point[0], point[1], point[2])
-    path.path, sum_cost = path.DijkstrasAlgorithm(
-        startPoint, endPoint, path.Ways)
+    xaxis = msg.destin.x*map1.multi
+    yaxis = ((msg.destin.y*map1.multi)*-1)+map1.mapsizepixel[1]
+    if not xaxis <= outsqare[0][0] and not xaxis >= outsqare[1][0] and not yaxis <= outsqare[0][1] and not yaxis >= outsqare[1][1]:
+        endPoint = Points(
+            (xaxis, yaxis), path.Ways)
+        path.graph = Graph_d()
+        for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
+            path.graph.AddEdges(point[0], point[1], point[2])
+        path.path, sum_cost = path.DijkstrasAlgorithm(
+            startPoint, endPoint, path.Ways)
 
     rospy.loginfo('[get_path_from_map]: responding...')
 
@@ -344,7 +349,6 @@ if __name__ == "__main__":
     WayList = []
     ObstacleList = []
     mathobs1 = MathOperations()
-    map1 = MapDesign.Map((150, 100), (1920, 1080))
     current_path = [Pose2D(0, 0, 0)]
     index = -1
     rospy.init_node('path_planner', anonymous=True)
