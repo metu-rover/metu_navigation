@@ -19,7 +19,6 @@ def update_position(msg, rover):
 
 def handle_set_destination(msg):
     global rover, distance
-    msg.destination.y *= -1
     req4GetPath = GetPathFromMapRequest(rover, msg.destination)
     res4GetPath = srv4GetPath(req4GetPath)
 

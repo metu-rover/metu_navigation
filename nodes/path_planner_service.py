@@ -6,7 +6,7 @@ import MapDesign
 from MapDesign import Obstacles
 import numpy as np
 from collections import defaultdict
-from leo_rover_localization.srv import GetPathFromMap
+from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapResponse
 from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointResponse
 from geometry_msgs.msg import Pose2D
 import itertools
@@ -303,12 +303,12 @@ def handle_get_path_from_map(msg):
             current_path.append(Pose2D(wp[1][0] / map1.multi, wp[1][1] / map1.multi, math.atan2(
                 wp[1][1] / map1.multi - current_path[-1].y, wp[1][0] / map1.multi - current_path[-1].x)))
 
-
         for path in current_path:
-            rospy.loginfo('x:%3.2f y:%3.2f t:%3.2f' % (path.x, path.y, path.theta))
+            rospy.loginfo('x:%3.2f y:%3.2f t:%3.2f' %
+                          (path.x, path.y, path.theta))
 
         index = 0
-        return True
+        return GetPathFromMapResponse(current_path, True)
 
 
 def handle_switch_waypoint(msg):
@@ -324,25 +324,26 @@ def handle_switch_waypoint(msg):
     if 0 <= index < len(current_path):
         waypoint = current_path[index]
         if msg.is_increment:
-            distanse = math.sqrt((current_path[index].x - current_path[index - 1].x)**2 + \
+            distanse = math.sqrt((current_path[index].x - current_path[index - 1].x)**2 +
                                  (current_path[index].y - current_path[index - 1].y)**2)
         else:
-            distanse = math.sqrt((current_path[index].x - current_path[index + 1].x)**2 + \
+            distanse = math.sqrt((current_path[index].x - current_path[index + 1].x)**2 +
                                  (current_path[index].y - current_path[index + 1].y)**2)
 
         if msg.is_increment:
             if waypoint.theta < 0:
-                waypoint.theta += math.pi
+                waypoint = Pose2D(
+                    current_path[index].x, current_path[index].y, current_path[index].theta + math.pi)
             else:
-                waypoint.theta -= math.pi
+                waypoint = Pose2D(
+                    current_path[index].x, current_path[index].y, current_path[index].theta - math.pi)
 
         rospy.loginfo(current_path)
-        rospy.loginfo(
-            '[switch_waypoint] is responsing...')
+        rospy.loginfo('[switch_waypoint] responding...')
 
         return SwitchWaypointResponse(False, distanse, waypoint)
     else:
-        return SwitchWaypointResponse(True, -1, Pose2D(0, 0, 0))
+        return SwitchWaypointResponse(True, -1, Pose2D())
 
 
 if __name__ == "__main__":
@@ -369,11 +370,11 @@ if __name__ == "__main__":
         rospy.Service('get_path_from_map', GetPathFromMap,
                       handle_get_path_from_map)
         rospy.loginfo_once(
-            '`get_path_from_map` is running at `path_planner_service`')
+            '[get_path_from_map] running @path_planner_service')
 
         rospy.Service('switch_waypoint', SwitchWaypoint,
                       handle_switch_waypoint)
         rospy.loginfo_once(
-            '`switch_waypoint` is running at `path_planner_service`')
+            '[switch_waypoint]   running @path_planner_service')
 
         rospy.spin()

@@ -1,5 +1,6 @@
 geometry_msgs/Pose2D target
 geometry_msgs/Pose2D destin
 ---
+geometry_msgs/Pose2D[] path
 bool is_path_updated
 
