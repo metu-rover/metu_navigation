@@ -2,13 +2,13 @@
 
 import math
 import rospy
-import MapDesign
-from MapDesign import Obstacles
+import MapDesign 
+from MapDesign import Obstacles,map1
 import numpy as np
 from collections import defaultdict
-from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapResponse
-from leo_rover_localization.srv import GetNextVertex, GetNextVertexResponse
-from geometry_msgs.msg import Pose2D
+from leo_rover_localization.srv import GetPathFromMap
+from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointResponse
+from geometry_msgs.msg import Point
 import itertools
 
 
@@ -243,22 +243,25 @@ class MathOperations():
         else:
             return np.sqrt(((Coords[1][1] - Coords[0][1]) ** 2) + ((Coords[1][0] - Coords[0][0]) ** 2))
 
-    def doesCollide(self, Pairs=[()], Edges=[()]):
-        a1 = Pairs[1][1]-Pairs[0][1]
-        b1 = Pairs[0][0]-Pairs[1][0]
-        c1 = a1*Pairs[0][0] + b1*Pairs[0][1]
-        a2 = Edges[1][1]-Edges[0][1]
-        b2 = Edges[0][0]-Edges[1][0]
-        c2 = a2*Edges[0][0] + b2*Edges[0][1]
-        det = a1*b2-a2*b1
-        if(det != 0):
-            x = (b2*c1 - b1*c2)/det
-            y = (a1*c2 - a2*c1)/det
-            if(x >= min(Pairs[0][0], Pairs[1][0]) and x <= max(Pairs[0][0], Pairs[1][0]) and x >= min(Edges[0][0], Edges[1][0]) and x <= max(Edges[0][0], Edges[1][0])
-                    and y >= min(Pairs[0][1], Pairs[1][1]) and y <= max(Pairs[0][1], Pairs[1][1])
-                    and y >= min(Edges[0][1], Edges[1][1]) and y <= max(Edges[0][1], Edges[1][1])):
-                return True
+    
+    def doesCollide(self,Pairs=[()], Edges=[()]):
+        #Original form of the function is under the all functions
+        #Does collide function is used for check two lines if they collide or not
+        if ((Edges[1][1] - Edges[0][1]) * (Pairs[1][0] - Pairs[0][0]) - (Edges[1][0] - Edges[0][0]) * (
+            Pairs[1][1] - Pairs[0][1])) == 0:
             return False
+        uA = ((Edges[1][0] - Edges[0][0]) * (Pairs[0][1] - Edges[0][1]) - (Edges[1][1] - Edges[0][1]) * (
+                Pairs[0][0] - Edges[0][0])) / (
+                     (Edges[1][1] - Edges[0][1]) * (Pairs[1][0] - Pairs[0][0]) - (Edges[1][0] - Edges[0][0]) * (
+                         Pairs[1][1] - Pairs[0][1]))
+        uB = ((Pairs[1][0] - Pairs[0][0]) * (Pairs[0][1] - Edges[0][1]) - (Pairs[1][1] - Pairs[0][1]) * (
+                Pairs[0][0] - Edges[0][0])) / (
+                     (Edges[1][1] - Edges[0][1]) * (Pairs[1][0] - Pairs[0][0]) - (Edges[1][0] - Edges[0][0]) * (
+                         Pairs[1][1] - Pairs[0][1]))
+        if (uA >= 0 and uA <= 1 and uB >= 0 and uB <= 1):
+            return True
+        return False
+
 
     def functionsOfEdges(self, Edges=[]):
         # f(x)=mx+a
@@ -276,82 +279,68 @@ def handle_get_path_from_map(msg):
     global current_path, index
     for ways in MapNp["Paths"]:
         WayList.append(ways)
-
+ 
     path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
-
+    outsqare = ((0,0),map1.mapsizepixel)
     startPoint = Points(
-        (msg.target.x * map1.multi, msg.target.y * map1.multi), path.Ways)
-    endPoint = Points(
-        (msg.destin.x * map1.multi, msg.destin.y * map1.multi), path.Ways)
+        (msg.curr.x * map1.multi)+13, (msg.curr.y * map1.multi)+367, path.Ways)
+    xaxis = msg.dest.x*map1.multi
+    yaxis = ((msg.dest.y*map1.multi)*-1)+map1.mapsizepixel[1]
+    if not xaxis <= outsqare[0][0] and not xaxis >= outsqare[1][0] and not yaxis <= outsqare[0][1] and not yaxis >= outsqare[1][1]:
+        endPoint = Points(
+            (xaxis, yaxis), path.Ways)
+        path.graph = Graph_d()
+        for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
+            path.graph.AddEdges(point[0], point[1], point[2])
+        path.path, sum_cost = path.DijkstrasAlgorithm(
+            startPoint, endPoint, path.Ways)
+    else:sum_cost = -1
+    rospy.loginfo('responsing... /path_planner')
 
-    path.graph = Graph_d()
-    for point in path.Ways.Way_List:  # the possible path points is appended to dijsktra algorithm's graph
-        path.graph.AddEdges(point[0], point[1], point[2])
-    path.path, sum_cost = path.DijkstrasAlgorithm(
-        startPoint, endPoint, path.Ways)
-
-    rospy.loginfo('[get_path_from_map]: responding...')
-
-    if sum_cost != -1:
-        index = 0
-        current_path = [msg.target]
-
-        for wp in path.path:
-            current_path.append(Pose2D(wp[1][0] / map1.multi, wp[1][1] / map1.multi, math.atan2(
-                wp[1][1] / map1.multi - current_path[-1].y, wp[1][0] / map1.multi - current_path[-1].x)))
-
-        for vertex in current_path:
-            rospy.loginfo('x:%3.2f y:%3.2f t:%3.2f' %
-                          (vertex.x, vertex.y, vertex.theta))
-
-        return GetPathFromMapResponse(current_path, True)
+    if sum_cost == -1:
+        return False
     else:
-        return GetPathFromMapResponse([], False)
+        # [[(2-tuple),(2-tuple),Float],...,[(2-tuple),(2-tuple),Float]]
+        current_path = [[(wp[0][0] / map1.multi, wp[0][1] / map1.multi), 
+                        (wp[1][0] / map1.multi, wp[1][1] / map1.multi), 
+                        wp[2] / map1.multi] for wp in path.path]
+        index = -1
+        rospy.logwarn(current_path)
+        return True
 
 
-def handle_get_next_vertex(msg):
+def handle_switch_waypoints(msg):
     global current_path, index, map1
-    if msg.to_increment:
-        at_boundary = index == len(current_path) - 1
-        if not at_boundary:
-            index += 1
 
-        distance = math.sqrt((current_path[index].x - current_path[index - 1].x)**2 +
-                             (current_path[index].y - current_path[index - 1].y)**2)
-
-        next_vertex = current_path[index]
+    if msg.is_next:
+        index += 1
     else:
-        at_boundary = index == 0
-        if not at_boundary:
-            index -= 1
+        index -= 1
 
-        distance = math.sqrt((current_path[index].x - current_path[index + 1].x)**2 +
-                             (current_path[index].y - current_path[index + 1].y)**2)
+    rospy.logwarn('index:%d len:%d' % (index, len(current_path)))
 
-        if current_path[index].theta < 0:
-            next_vertex = Pose2D(
-                current_path[index].x, current_path[index].y, current_path[index].theta + math.pi)
-        else:
-            next_vertex = Pose2D(
-                current_path[index].x, current_path[index].y, current_path[index].theta - math.pi)
+    if 0 <= index < len(current_path):
+        waypoint = current_path[index][1]
+        distanse = current_path[index][2]
 
-    rospy.loginfo('[get_next_vertex]: responding...')
+        rospy.logwarn(current_path)
 
-    return GetNextVertexResponse(at_boundary, distance, next_vertex)
+        return SwitchWaypointResponse(False, distanse, Point(waypoint[0], waypoint[1], 0))
+    else:
+        return SwitchWaypointResponse(True, -1, Point(-1, -1, -1))
 
 
 if __name__ == "__main__":
     WayList = []
     ObstacleList = []
     mathobs1 = MathOperations()
-    map1 = MapDesign.Map((150, 100), (1920, 1080))
-    current_path = [Pose2D(0, 0, 0)]
+    current_path = [Point(0, 0, 0)]
     index = -1
-    rospy.init_node('path_planner', anonymous=True)
+    rospy.init_node('path_planner_service', anonymous=True)
 
     if len(rospy.myargv()) == 1:
         rospy.logerr(
-            'usage: rosrun leo_rover_localization path_planner_service.py /path/to/map.npz')
+            'usage: rosrun leo_rover_localization service_node.py <path_to_map.npz>')
     else:
         np_load_old = np.load
         # modify the default parameters of np.loadWe
@@ -363,12 +352,10 @@ if __name__ == "__main__":
 
         rospy.Service('get_path_from_map', GetPathFromMap,
                       handle_get_path_from_map)
-        rospy.loginfo_once(
-            '[get_path_from_map]: running at path_planner')
 
-        rospy.Service('get_next_vertex', GetNextVertex,
-                      handle_get_next_vertex)
-        rospy.loginfo_once(
-            '[get_next_vertex]: running at path_planner')
+        rospy.Service('get_next_waypoint', SwitchWaypoint,
+                      handle_switch_waypoints)
+
+        rospy.loginfo_once('requesting... /point_creator')
 
         rospy.spin()
