@@ -1,3 +1,3 @@
 geometry_msgs/Pose2D destination
 ---
-bool respond
+bool response

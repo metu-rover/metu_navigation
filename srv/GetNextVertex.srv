@@ -1,0 +1,5 @@
+bool to_increment
+---
+bool at_boundary
+float32 distance
+geometry_msgs/Pose2D next_vertex

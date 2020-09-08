@@ -3,10 +3,10 @@
 import rospy
 import math
 from geometry_msgs.msg import Twist, Pose, PoseStamped, Pose2D
+from leo_rover_localization.srv import GetNextVertex, GetNextVertexRequest
 from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
-from leo_rover_localization.srv import SetMotorEnable
-from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointRequest
 from leo_rover_localization.srv import SetDestination
+from leo_rover_localization.srv import SetMotorEnable
 
 epsilon = 0.25
 
@@ -23,10 +23,7 @@ def handle_set_destination(msg):
     res4GetPath = srv4GetPath(req4GetPath)
 
     if res4GetPath.is_path_updated:
-        global target
-        target.x = msg.destination.x
-        target.y = msg.destination.y
-        target.theta = msg.destination.theta
+        to_disable = False
         distance = 0
 
     return res4GetPath.is_path_updated
@@ -38,14 +35,15 @@ def handle_enable_motors(msg):
     is_enable = msg.enable
 
     if is_enable:
-        return "motors are enabled, Don't panic!"
+        return "Self-control is enabled, Don't panic!"
     else:
         pub.publish(Twist())
-        return "motors are disabled."
+        return "Self-control is disabled. You are boss now!"
 
 
 if __name__ == '__main__':
     is_enable = False
+    to_disable = False
     distance = -1
     u_max = 0.5
     K_p = math.pi / 3
@@ -59,16 +57,15 @@ if __name__ == '__main__':
     msg = Twist()
 
     rover = Pose2D()
-    vertice = Pose2D()
-    target = Pose2D()
+    vertex = Pose2D()
 
     # wait until the service point creator to get the next action
     # is ready and get a proxy of it
-    rospy.loginfo_once('[rover_controller] is waiting... get_path_from_map')
+    rospy.loginfo_once('[rover_controller] waiting for get_path_from_map')
     rospy.wait_for_service('get_path_from_map')
 
     srv4GetPath = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
-    srv4switchWps = rospy.ServiceProxy('switch_waypoint', SwitchWaypoint)
+    srv4NextVertex = rospy.ServiceProxy('get_next_vertex', GetNextVertex)
 
     rospy.Service('set_destination', SetDestination, handle_set_destination)
     rospy.Service('enable_motors', SetMotorEnable, handle_enable_motors)
@@ -84,27 +81,29 @@ if __name__ == '__main__':
             # rover is set to be moved
             if distance < epsilon:  # reached the point
                 # switch waypoint
-                req4switchWps = SwitchWaypointRequest(True)
-                res4switchWps = srv4switchWps(req4switchWps)
-                if res4switchWps.is_finished:
+                if to_disable:
                     is_enable = False
                     pub.publish(Twist())
-                    rospy.logwarn('[rover] reached...')
-                distance = res4switchWps.distance
+                    rospy.logwarn('[rover_controller] reached...')
+                    to_disable = False
+                else:
+                    req4NextVertex = GetNextVertexRequest(True)
+                    res4NextVertex = srv4NextVertex(req4NextVertex)
+                    distance = res4NextVertex.distance
+                    vertex = res4NextVertex.next_vertex
+                    to_disable = res4NextVertex.at_boundary
             else:
-                distance = math.sqrt((res4switchWps.waypoint.x - rover.x) ** 2 +
-                                     (res4switchWps.waypoint.y - rover.y) ** 2)
+                distance = math.sqrt((res4NextVertex.next_vertex.x - rover.x) ** 2 +
+                                     (res4NextVertex.next_vertex.y - rover.y) ** 2)
 
-                alpha = math.atan2(res4switchWps.waypoint.y - rover.y,
-                                   res4switchWps.waypoint.x - rover.x)
+                alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
+                                   res4NextVertex.next_vertex.x - rover.x)
 
                 dot_product = (math.cos(alpha) * math.cos(rover.theta) +
                                math.sin(alpha) * math.sin(rover.theta))
 
                 msg.linear.x = dot_product * u_max if dot_product > 0 else 0
                 msg.angular.z = (alpha - rover.theta) * K_p
-                rospy.logwarn_throttle(
-                    0.1, 'x:%2.1f y:%2.1f theta:%2.1f' % (rover.x, rover.y, rover.theta))
 
                 pub.publish(msg)
         rate.sleep()

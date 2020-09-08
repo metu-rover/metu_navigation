@@ -7,7 +7,7 @@ from MapDesign import Obstacles
 import numpy as np
 from collections import defaultdict
 from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapResponse
-from leo_rover_localization.srv import SwitchWaypoint, SwitchWaypointResponse
+from leo_rover_localization.srv import GetNextVertex, GetNextVertexResponse
 from geometry_msgs.msg import Pose2D
 import itertools
 
@@ -290,60 +290,54 @@ def handle_get_path_from_map(msg):
     path.path, sum_cost = path.DijkstrasAlgorithm(
         startPoint, endPoint, path.Ways)
 
-    rospy.loginfo(
-        '[get_path_from_map] is responsing...')
+    rospy.loginfo('[get_path_from_map]: responding...')
 
-    if sum_cost == -1:
-        return False
-    else:
+    if sum_cost != -1:
+        index = 0
         current_path = [msg.target]
 
-        # [[2-tuple,2-tuple,float],[2-tuple,2-tuple,float], ..., [2-tuple,2-tuple,float]]
         for wp in path.path:
             current_path.append(Pose2D(wp[1][0] / map1.multi, wp[1][1] / map1.multi, math.atan2(
                 wp[1][1] / map1.multi - current_path[-1].y, wp[1][0] / map1.multi - current_path[-1].x)))
 
-        for path in current_path:
+        for vertex in current_path:
             rospy.loginfo('x:%3.2f y:%3.2f t:%3.2f' %
-                          (path.x, path.y, path.theta))
+                          (vertex.x, vertex.y, vertex.theta))
 
-        index = 0
         return GetPathFromMapResponse(current_path, True)
+    else:
+        return GetPathFromMapResponse([], False)
 
 
-def handle_switch_waypoint(msg):
+def handle_get_next_vertex(msg):
     global current_path, index, map1
+    if msg.to_increment:
+        at_boundary = index == len(current_path) - 1
+        if not at_boundary:
+            index += 1
 
-    if msg.is_increment:
-        index += 1
+        distance = math.sqrt((current_path[index].x - current_path[index - 1].x)**2 +
+                             (current_path[index].y - current_path[index - 1].y)**2)
+
+        next_vertex = current_path[index]
     else:
-        index -= 1
+        at_boundary = index == 0
+        if not at_boundary:
+            index -= 1
 
-    rospy.logwarn('index:%d len:%d' % (index, len(current_path)))
+        distance = math.sqrt((current_path[index].x - current_path[index + 1].x)**2 +
+                             (current_path[index].y - current_path[index + 1].y)**2)
 
-    if 0 <= index < len(current_path):
-        waypoint = current_path[index]
-        if msg.is_increment:
-            distanse = math.sqrt((current_path[index].x - current_path[index - 1].x)**2 +
-                                 (current_path[index].y - current_path[index - 1].y)**2)
+        if current_path[index].theta < 0:
+            next_vertex = Pose2D(
+                current_path[index].x, current_path[index].y, current_path[index].theta + math.pi)
         else:
-            distanse = math.sqrt((current_path[index].x - current_path[index + 1].x)**2 +
-                                 (current_path[index].y - current_path[index + 1].y)**2)
+            next_vertex = Pose2D(
+                current_path[index].x, current_path[index].y, current_path[index].theta - math.pi)
 
-        if msg.is_increment:
-            if waypoint.theta < 0:
-                waypoint = Pose2D(
-                    current_path[index].x, current_path[index].y, current_path[index].theta + math.pi)
-            else:
-                waypoint = Pose2D(
-                    current_path[index].x, current_path[index].y, current_path[index].theta - math.pi)
+    rospy.loginfo('[get_next_vertex]: responding...')
 
-        rospy.loginfo(current_path)
-        rospy.loginfo('[switch_waypoint] responding...')
-
-        return SwitchWaypointResponse(False, distanse, waypoint)
-    else:
-        return SwitchWaypointResponse(True, -1, Pose2D())
+    return GetNextVertexResponse(at_boundary, distance, next_vertex)
 
 
 if __name__ == "__main__":
@@ -353,11 +347,11 @@ if __name__ == "__main__":
     map1 = MapDesign.Map((150, 100), (1920, 1080))
     current_path = [Pose2D(0, 0, 0)]
     index = -1
-    rospy.init_node('path_planner_service', anonymous=True)
+    rospy.init_node('path_planner', anonymous=True)
 
     if len(rospy.myargv()) == 1:
         rospy.logerr(
-            'usage: rosrun leo_rover_localization path_planner_service.py <path_to_map.npz>')
+            'usage: rosrun leo_rover_localization path_planner_service.py /path/to/map.npz')
     else:
         np_load_old = np.load
         # modify the default parameters of np.loadWe
@@ -370,11 +364,11 @@ if __name__ == "__main__":
         rospy.Service('get_path_from_map', GetPathFromMap,
                       handle_get_path_from_map)
         rospy.loginfo_once(
-            '[get_path_from_map] running @path_planner_service')
+            '[get_path_from_map]: running at path_planner')
 
-        rospy.Service('switch_waypoint', SwitchWaypoint,
-                      handle_switch_waypoint)
+        rospy.Service('get_next_vertex', GetNextVertex,
+                      handle_get_next_vertex)
         rospy.loginfo_once(
-            '[switch_waypoint]   running @path_planner_service')
+            '[get_next_vertex]: running at path_planner')
 
         rospy.spin()

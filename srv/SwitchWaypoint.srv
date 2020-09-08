@@ -1,5 +1,0 @@
-bool is_increment
----
-bool is_finished
-float32 distance
-geometry_msgs/Pose2D waypoint
