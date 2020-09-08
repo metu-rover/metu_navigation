@@ -84,7 +84,7 @@ if __name__ == '__main__':
                 if to_disable:
                     is_enable = False
                     pub.publish(Twist())
-                    rospy.logwarn('[rover_controller] reached...')
+                    rospy.logwarn('[rover_controller] Self-control is disabled due to arrival...')
                     to_disable = False
                 else:
                     req4NextVertex = GetNextVertexRequest(True)
