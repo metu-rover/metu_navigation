@@ -69,8 +69,6 @@ def callback_artag_marker(msg, args):
     if abs(vel.linear.x) < epsilon and abs(vel.angular.z) < 2 * epsilon:
         cum.x = msg.transform.translation.x - odm.pose.pose.position.x
         cum.y = msg.transform.translation.y - odm.pose.pose.position.y
-        cum.theta = Quad2Euler(msg.transform.rotation)[2] - \
-            Quad2Euler(odm.pose.pose.orientation)[2]
 
 
 if __name__ == '__main__':
@@ -98,7 +96,7 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         msg.x = total.x + odm.pose.pose.position.x
         msg.y = total.y + odm.pose.pose.position.y
-        msg.theta = total.theta + Quad2Euler(odm.pose.pose.orientation)[2]
+        msg.theta = Quad2Euler(odm.pose.pose.orientation)[2]
         
         pub.publish(msg)
 
