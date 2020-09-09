@@ -293,6 +293,8 @@ def handle_get_path_from_map(msg):
             path.graph.AddEdges(point[0], point[1], point[2])
         path.path, sum_cost = path.DijkstrasAlgorithm(
             startPoint, endPoint, path.Ways)
+    else:
+        return GetPathFromMapResponse([], False)
 
     rospy.loginfo('[get_path_from_map]: responding...')
 
