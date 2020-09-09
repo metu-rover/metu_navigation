@@ -83,17 +83,17 @@ if __name__ == '__main__':
 
     msg = Pose2D()  # msg
     map_frame_pose = Pose2D()  # rover
-    total_frame_pose = Pose2D()  # total
-    world_frame_pose = Pose2D()  # balance
+    total = Pose2D()  # total
+    reference = Pose2D()  # balance
     vel = Twist()
 
     # rufat's node
     rospy.Subscriber('odometry/filtered', Odometry,
-                     callback_localization, (map_frame_pose, world_frame_pose))
+                     callback_localization, (map_frame_pose, reference))
 
     # Arda's node
     rospy.Subscriber('/base_link_transform', TransformStamped,
-                     callback_artag_marker, (map_frame_pose, total_frame_pose, vel))
+                     callback_artag_marker, (map_frame_pose, total, vel))
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
     rospy.Service('taring_the_balance', SetReferancePose,
                   handle_taring_the_balance)
@@ -103,16 +103,16 @@ if __name__ == '__main__':
     rospy.wait_for_message(
         '/leo_localization/odometry/filtered', Odometry, timeout=10)
     rospy.loginfo_once('[rover_localization] connected odometry/filtered')
-    world_frame_pose.x = map_frame_pose.x
-    world_frame_pose.y = map_frame_pose.y
-    world_frame_pose.theta = map_frame_pose.theta
+    reference.x = map_frame_pose.x
+    reference.y = map_frame_pose.y
+    reference.theta = map_frame_pose.theta
 
     rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
         # init + A_0 + (R_cur - R_0)
-        msg.x = total_frame_pose.x + map_frame_pose.x
-        msg.y = total_frame_pose.y + map_frame_pose.y
+        msg.x = total.x + map_frame_pose.x
+        msg.y = total.y + map_frame_pose.y
         msg.theta = map_frame_pose.theta
 
         pub.publish(msg)
