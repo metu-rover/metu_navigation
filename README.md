@@ -7,7 +7,6 @@ roslaunch leo_rover_localization robot_localization.launch
 ```
 
 to run rover_controller_node.py and path_planner_service.py
-
 ```shell
 roslaunch leo_rover_localization robot_controller.launch
 ```
@@ -24,4 +23,4 @@ rosservice call /leo_locomotion/set_destination "destination:
   y: 0.0
   theta: 0.0" 
 ```
-and make sure that you get the `resopnd: true`
+and make sure that you get the `response: true`

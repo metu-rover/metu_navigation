@@ -59,19 +59,21 @@ if __name__ == '__main__':
     rover = Pose2D()
     vertex = Pose2D()
 
-    # wait until the service point creator to get the next action
-    # is ready and get a proxy of it
-    rospy.loginfo_once('[rover_controller] waiting for get_path_from_map')
+    # wait until the service get_path_from_map to get a path to go destination vertex
+    srv4GetPath = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
+    rospy.loginfo_once('[rover_controller] waiting for #get_path_from_map')
     rospy.wait_for_service('get_path_from_map')
 
-    srv4GetPath = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
     srv4NextVertex = rospy.ServiceProxy('get_next_vertex', GetNextVertex)
 
     rospy.Service('set_destination', SetDestination, handle_set_destination)
+    rospy.loginfo_once('#set_destination running @rover_controller')
+
     rospy.Service('enable_motors', SetMotorEnable, handle_enable_motors)
+    rospy.loginfo_once('#enable_motors running @rover_controller')
 
     # subscribe the topic /odometry/filtered to learn local position of the rover
-    rospy.Subscriber('/leo_localization/ground_truth_to_pose', Pose2D, update_position, rover)
+    rospy.Subscriber('/leo_localization/ground_truth_to_pose2D', Pose2D, update_position, rover)
 
     rate = rospy.Rate(100)  # 10 Hz
 

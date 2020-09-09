@@ -61,6 +61,7 @@ add_service_files(
   SetDestination.srv
   SetMotorEnable.srv
   GetNextVertex.srv
+  SetReferancePose.srv
 )
 
 ## Generate actions in the 'action' folder
