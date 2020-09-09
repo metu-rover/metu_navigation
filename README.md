@@ -6,12 +6,12 @@ to run bot robot_localization package
 roslaunch leo_rover_localization robot_localization.launch
 ```
 
-to run rover_controller_node.py and path_planner_service.py
+to run rover_locomotion_node.py and path_planner_service.py
 ```shell
-roslaunch leo_rover_localization robot_controller.launch
+roslaunch leo_rover_localization robot_locomotion.launch
 ```
 
-to allow rover_controller_node.py publishing to cmd_vel
+to allow rover_locomotion_node.py publishing to cmd_vel
 ```shell
 rosservice call /leo_locomotion/enable_motors "enable: True"
 ```

@@ -1,6 +1,0 @@
-<launch>
-  <group ns="leo_locomotion">
-    <node name="path_planner" pkg="leo_rover_localization" type="path_planner_service.py" args="$(find leo_rover_localization)/meshes/leo_map.npz" output="screen" />
-    <node name="rover_controller" pkg="leo_rover_localization" type="rover_controller_node.py"  output="screen" />
-  </group>
-</launch>

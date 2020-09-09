@@ -1,111 +1,46 @@
 #!/usr/bin/env python
 
 import rospy
-import math
-from geometry_msgs.msg import Twist, Pose, PoseStamped, Pose2D
-from leo_rover_localization.srv import GetNextVertex, GetNextVertexRequest
-from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
-from leo_rover_localization.srv import SetDestination
-from leo_rover_localization.srv import SetMotorEnable
-
-epsilon = 0.25
+from std_msgs.msg import String
+from geometry_msgs.msg import Pose2D
+from leo_rover_localization.srv import SetMotorEnable, SetMotorEnableRequest
+from leo_rover_localization.srv import SetDestination, SetDestinationRequest
 
 
-def update_position(msg, rover):
-    rover.x = msg.x
-    rover.y = msg.y
-    rover.theta = msg.theta
-
-
-def handle_set_destination(msg):
-    global rover, distance
-    req4GetPath = GetPathFromMapRequest(rover, msg.destination)
-    res4GetPath = srv4GetPath(req4GetPath)
-
-    if res4GetPath.is_path_updated:
-        to_disable = False
-        distance = 0
-
-    return res4GetPath.is_path_updated
-
-
-def handle_enable_motors(msg):
-    global is_enable
-    global pub
-    is_enable = msg.enable
-
-    if is_enable:
-        return "Self-control is enabled, Don't panic!"
+def rover_listener_callback(msg, args):
+    motorEnabler, DestSetter = args
+    rospy.loginfo('[rover_controller] responding...')
+    if msg.data.endswith('_motors'):
+        request = SetMotorEnableRequest(msg.data.startswith('enable'))
+        response = motorEnabler(request)
+        rospy.loginfo(response.response)
+    elif msg.data.startswith('set_waypoint_'):
+        rospy.loginfo(msg.data[-2:])
+        waypoint = rospy.get_param('waypoint_' + msg.data[-2:])
+        rospy.loginfo('1')
+        destination = Pose2D(waypoint['x'], waypoint['y'], waypoint['theta'])
+        rospy.loginfo('2')
+        request = SetDestinationRequest(destination)
+        rospy.loginfo('3')
+        response = DestSetter(request)
+        rospy.loginfo('4')
+        rospy.loginfo(
+            'Waypoint is defined and set to be destination' if response.response else 'the waypoint may be undefined or out of the map')
     else:
-        pub.publish(Twist())
-        return "Self-control is disabled. You are boss now!"
+        rospy.logerr('[rover_controller] unknown command')
 
 
 if __name__ == '__main__':
-    is_enable = False
-    to_disable = False
-    distance = -1
-    u_max = 0.5
-    K_p = math.pi / 3
-
-    # initialize node
     rospy.init_node('rover_controller', anonymous=True)
 
-    # publish /cmd_vel to drive rover and
-    # initialize its message container
-    pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-    msg = Twist()
+    srv4enMtr = rospy.ServiceProxy('enable_motors', SetMotorEnable)
+    srv4setDst = rospy.ServiceProxy('set_destination', SetDestination)
 
-    rover = Pose2D()
-    vertex = Pose2D()
+    rospy.wait_for_service('set_destination')
+    rospy.loginfo_once('[rover_controller] connected #set_destination @rover_locomotion')
+    rospy.wait_for_service('enable_motors')
+    rospy.loginfo_once('[rover_controller] connected #enable_motors @rover_locomotion')
+    rospy.Subscriber('rover_listener', String,
+                     rover_listener_callback, (srv4enMtr, srv4setDst))
 
-    # wait until the service get_path_from_map to get a path to go destination vertex
-    srv4GetPath = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
-    rospy.loginfo_once('[rover_controller] waiting for #get_path_from_map')
-    rospy.wait_for_service('get_path_from_map')
-
-    srv4NextVertex = rospy.ServiceProxy('get_next_vertex', GetNextVertex)
-
-    rospy.Service('set_destination', SetDestination, handle_set_destination)
-    rospy.loginfo_once('#set_destination running @rover_controller')
-
-    rospy.Service('enable_motors', SetMotorEnable, handle_enable_motors)
-    rospy.loginfo_once('#enable_motors running @rover_controller')
-
-    # subscribe the topic /odometry/filtered to learn local position of the rover
-    rospy.Subscriber('/leo_localization/ground_truth_to_pose2D', Pose2D, update_position, rover)
-
-    rate = rospy.Rate(100)  # 10 Hz
-
-    while not rospy.is_shutdown():
-
-        if is_enable and distance != -1:
-            # rover is set to be moved
-            if distance < epsilon:  # reached the point
-                # switch waypoint
-                if to_disable:
-                    is_enable = False
-                    pub.publish(Twist())
-                    rospy.logwarn('[rover_controller] Self-control is disabled due to arrival...')
-                    to_disable = False
-                else:
-                    req4NextVertex = GetNextVertexRequest(True)
-                    res4NextVertex = srv4NextVertex(req4NextVertex)
-                    distance = res4NextVertex.distance
-                    vertex = res4NextVertex.next_vertex
-                    to_disable = res4NextVertex.at_boundary
-            else:
-                distance = math.sqrt((res4NextVertex.next_vertex.x - rover.x) ** 2 +
-                                     (res4NextVertex.next_vertex.y - rover.y) ** 2)
-
-                alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
-                                   res4NextVertex.next_vertex.x - rover.x)
-
-                dot_product = (math.cos(alpha) * math.cos(rover.theta) +
-                               math.sin(alpha) * math.sin(rover.theta))
-
-                msg.linear.x = dot_product * u_max if dot_product > 0 else 0
-                msg.angular.z = (alpha - rover.theta) * K_p
-
-                pub.publish(msg)
-        rate.sleep()
+    rospy.spin()

@@ -1,0 +1,49 @@
+## waypoints are of the form below
+# waypoint_<two_characters>: {
+#     x: <float>,
+#     y: <float>,
+#     theta: <float>
+# }
+
+waypoint_01: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
+
+waypoint_02: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
+
+waypoint_03: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
+
+waypoint_04: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
+
+waypoint_05: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
+
+waypoint_S0: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
+
+# Maintanance Pano
+waypoint_Mp: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
