@@ -74,9 +74,9 @@ def handle_taring_the_balance(msg):
 if __name__ == '__main__':
     rospy.init_node('rover_localization', anonymous=True)
 
-    msg = Pose2D()
-    cum_frame_pose = Pose2D() # total
+    msg = Pose2D() # msg
     map_frame_pose = Pose2D() # rover
+    total_frame_pose = Pose2D() # total
     world_frame_pose = Pose2D() # balance
     vel = Twist()
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
     # Arda's node
     rospy.Subscriber('/base_link_transform', TransformStamped,
-                     callback_artag_marker, (map_frame_pose, cum_frame_pose, vel))
+                     callback_artag_marker, (map_frame_pose, total_frame_pose, vel))
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
     rospy.Service('taring_the_balance', SetReferancePose, handle_taring_the_balance)
 
@@ -99,8 +99,8 @@ if __name__ == '__main__':
     rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
-        msg.x = cum_frame_pose.x + map_frame_pose.x #init + A_0 + (R_cur - R_0)
-        msg.y = cum_frame_pose.y + map_frame_pose.y
+        msg.x = total_frame_pose.x + map_frame_pose.x #init + A_0 + (R_cur - R_0)
+        msg.y = total_frame_pose.y + map_frame_pose.y
         msg.theta = map_frame_pose.theta
         
         pub.publish(msg)
