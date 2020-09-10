@@ -77,6 +77,12 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(100)  # 10 Hz
 
+    rospy.loginfo(rospy.get_param('/leo_locomotion/tf_static'))
+
+    markers = [ Pose2D(float(marker['x']),float(marker['y']), 0) for marker in rospy.get_param('/leo_locomotion/tf_static').items() ]
+
+    rospy.logerr(markers)
+    rospy.logdebug_once('rover_locomotion READY!!!')
     while not rospy.is_shutdown():
 
         if is_enable and distance != -1:
@@ -87,7 +93,6 @@ if __name__ == '__main__':
                     is_enable = False
                     pub.publish(Twist())
                     rospy.logwarn('[rover_locomotion] Self-control is disabled due to arrival...')
-                    to_disable = False
                 else:
                     req4NextVertex = GetNextVertexRequest(True)
                     res4NextVertex = srv4NextVertex(req4NextVertex)
@@ -104,7 +109,7 @@ if __name__ == '__main__':
                 dot_product = (math.cos(alpha) * math.cos(rover.theta) +
                                math.sin(alpha) * math.sin(rover.theta))
 
-                msg.linear.x = dot_product * u_max if dot_product > 0 else 0
+                msg.linear.x = dot_product * u_max if dot_product >= 0 else 0
                 msg.angular.z = (alpha - rover.theta) * K_p
 
                 pub.publish(msg)

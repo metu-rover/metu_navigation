@@ -318,7 +318,7 @@ def main():
     Way.Create_Rough_Pairlist()
     Way.Crate_PairList()
     Way.Create_Ways(Way.Pair_List)
-    np.savez("../meshes/leo_map", ObstacleList=ObstacleList, Paths=Way.Way_List)
+    np.savez("../resources/leo_map", ObstacleList=ObstacleList, Paths=Way.Way_List)
     # with np.savez the map and obstacles define one time and until the user wants changed something in map program doesn't have to use MapDesign.
     # To sum up it increases program performance.
 
