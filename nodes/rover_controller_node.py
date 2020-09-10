@@ -5,7 +5,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Pose2D
 from leo_rover_localization.srv import SetMotorEnable, SetMotorEnableRequest
 from leo_rover_localization.srv import SetDestination, SetDestinationRequest
-from leo_rover_localization.srv import SetReferancePose, SetReferencePoseRequest
+from leo_rover_localization.srv import SetReferencePose, SetReferencePoseRequest
 
 
 def rover_listener_callback(msg, args):
@@ -16,19 +16,19 @@ def rover_listener_callback(msg, args):
         response = set_motors(request)
         rospy.loginfo(response.response)
     elif msg.data.startswith('set_waypoint'):
-        rospy.loginfo(msg.data[-2:])
         waypoint = rospy.get_param('waypoint_' + msg.data[-2:])
         destination = Pose2D(waypoint['x'], waypoint['y'], waypoint['theta'])
         request = SetDestinationRequest(destination)
         response = set_destination(request)
         rospy.loginfo(
-            ('Rover now is directed to x:%2.1f y:%2.1f' % (destination.x, destination.y)) if response.response else 'the waypoint may be undefined or out of the map')
+            ('Rover now is directed to %d at x:%2.1f y:%2.1f' % (msg.data[-2:], destination.x, destination.y)) if response.response else 'the waypoint may be undefined or out of the map')
     elif msg.data.startswith('set_destination'):
-        destination = Pose2D(float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
+        waypoint = rospy.get_param('waypoint_' + msg.data[-2:])
+        destination = Pose2D(waypoint['x'], waypoint['y'], waypoint['theta'])
         request = SetDestinationRequest(destination)
         response = set_destination(request)
         rospy.loginfo(
-            ('Rover now is directed to x:%2.1f y:%2.1f' % (destination.x, destination.y)) if response.response else 'the destination may be undefined or out of the map')
+            ('Rover now is directed to %2d at x:%2.1f y:%2.1f' % (msg.data[-2:], destination.x, destination.y)) if response.response else 'the destination may be undefined or out of the map')
     elif msg.data.startswith('set_pose'):
         position = Pose2D(float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
         request = SetReferencePoseRequest(position)
@@ -42,9 +42,9 @@ def rover_listener_callback(msg, args):
 if __name__ == '__main__':
     rospy.init_node('rover_controller', anonymous=True)
 
-    set_destination = rospy.ServiceProxy('set_destination', SetDestination)
     enable_motors = rospy.ServiceProxy('enable_motors', SetMotorEnable)
-    set_pose = rospy.ServiceProxy('/leo_localization/taring_the_balance', SetReferancePose)
+    set_destination = rospy.ServiceProxy('set_destination', SetDestination)
+    set_pose = rospy.ServiceProxy('/leo_localization/taring_the_balance', SetReferencePose)
 
     rospy.wait_for_service('set_destination')
     rospy.loginfo_once('[rover_controller] connected #set_destination @rover_locomotion')

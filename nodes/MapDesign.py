@@ -2,7 +2,7 @@
 
 import numpy as np
 import itertools
-
+import rospy
 
 class MathOperations():
 
@@ -298,7 +298,7 @@ math = MathOperations()
 map1 = Map((36, 43), (714, 850))
 
 
-def main():
+def main(path_to_map):
     global ObstacleList
 
     """""""""*************    IDENTIFIED   OBJECTS    *************"""""""""
@@ -318,10 +318,15 @@ def main():
     Way.Create_Rough_Pairlist()
     Way.Crate_PairList()
     Way.Create_Ways(Way.Pair_List)
-    np.savez("../resources/leo_map", ObstacleList=ObstacleList, Paths=Way.Way_List)
+    np.savez(path_to_map, ObstacleList=ObstacleList, Paths=Way.Way_List)
     # with np.savez the map and obstacles define one time and until the user wants changed something in map program doesn't have to use MapDesign.
     # To sum up it increases program performance.
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    rospy.init_node('map_design', anonymous=True)
+
+    if (len(rospy.myargv()) == 1):
+        rospy.logerr_once('usage: rosrun leo_rover_localization MapDesign.py /path/to/map.npz')
+    else:
+        main(rospy.myargv()[1])
