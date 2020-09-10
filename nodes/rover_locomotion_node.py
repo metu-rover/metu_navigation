@@ -163,6 +163,7 @@ if __name__ == '__main__':
                         any_markers = False
                         try:
                             edge_markers.remove(marker)
+                            rospy.loginfo('marker detected, position updated')
                         except ValueError as e:
                             rospy.logerr('marker cannot find in markers')
                     elif abs(alpha - rover.theta) < 3 * epsilon:
