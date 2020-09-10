@@ -119,19 +119,18 @@ if __name__ == '__main__':
                     waystops = [marker for marker in markers if abs(
                         normal_length(rover, vertex, marker)) < epsilon_normal]
             else:
-                if 1:
-                    pass
-                else:
-                    pass
+
                 distance = math.sqrt((res4NextVertex.next_vertex.x - rover.x) ** 2 +
                                      (res4NextVertex.next_vertex.y - rover.y) ** 2)
+                if 1:
+                    alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
+                                    res4NextVertex.next_vertex.x - rover.x)
 
-                alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
-                                   res4NextVertex.next_vertex.x - rover.x)
-
-                dot_product = (math.cos(alpha) * math.cos(rover.theta) +
-                               math.sin(alpha) * math.sin(rover.theta))
-
+                    dot_product = (math.cos(alpha) * math.cos(rover.theta) +
+                                math.sin(alpha) * math.sin(rover.theta))
+                else:
+                    pass
+                    
                 msg.linear.x = dot_product * u_max if dot_product >= 0 else 0
                 msg.angular.z = (alpha - rover.theta) * K_p
 
