@@ -82,14 +82,13 @@ def callback_artag_marker(msg, args):
         world.y = msg.transform.translation.y - rel.y
 
 
-def handle_taring_the_balance(msg, args):
+def handle_taring_the_balance(msg):
+    global relative_pose, world_frame_pose
     rospy.loginfo('#handle_taring_the_balance responding...')
-    relative, world = args
-    world.x = msg.referance.x - relative.x
-    world.y = msg.referance.y - relative.y
-    world.theta = msg.referance.theta - relative.theta
+    world_frame_pose.x = msg.reference.x - relative_pose.x
+    world_frame_pose.y = msg.reference.y - relative_pose.y
     rospy.loginfo('rover now at \{x:%4.2f, y:%4.2f, theta:%4.2f\}' % (
-        msg.referance.x, msg.referance.y, msg.referance.theta))
+        msg.reference.x, msg.reference.y, msg.reference.theta))
     return SetReferencePoseResponse(True)
 
 
@@ -111,8 +110,7 @@ if __name__ == '__main__':
     rospy.Subscriber('/base_link_transform', TransformStamped,
                      callback_artag_marker, (relative_pose, world_frame_pose, vel))
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
-    rospy.Service('taring_the_balance', SetReferencePose,
-                  handle_taring_the_balance)
+    rospy.Service('taring_the_balance', SetReferencePose, handle_taring_the_balance)
     rospy.loginfo_once('#taring_the_balance running @rover_localization')
 
     pub = rospy.Publisher('ground_truth_to_pose2D', Pose2D, queue_size=10)

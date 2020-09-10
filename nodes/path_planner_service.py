@@ -296,7 +296,7 @@ def handle_get_path_from_map(msg):
     else:
         return GetPathFromMapResponse([], False)
 
-    rospy.loginfo('[get_path_from_map]: responding...')
+    rospy.loginfo('#get_path_from_map responding...')
 
     if sum_cost != -1:
         index = 0
@@ -340,7 +340,7 @@ def handle_get_next_vertex(msg):
             next_vertex = Pose2D(
                 current_path[index].x, current_path[index].y, current_path[index].theta - math.pi)
 
-    rospy.loginfo('[get_next_vertex]: responding...')
+    rospy.loginfo('#get_next_vertex responding...')
 
     return GetNextVertexResponse(at_boundary, distance, next_vertex)
 
@@ -368,11 +368,11 @@ if __name__ == "__main__":
         rospy.Service('get_path_from_map', GetPathFromMap,
                       handle_get_path_from_map)
         rospy.loginfo_once(
-            '[get_path_from_map]: running at path_planner')
+            '#get_path_from_map running @path_planner')
 
         rospy.Service('get_next_vertex', GetNextVertex,
                       handle_get_next_vertex)
         rospy.loginfo_once(
-            '[get_next_vertex]: running at path_planner')
+            '#get_next_vertex running @path_planner')
 
         rospy.spin()

@@ -23,16 +23,14 @@ def rover_listener_callback(msg, args):
         response = set_destination(request)
         rospy.loginfo(
             ('Rover now is directed to x:%2.1f y:%2.1f' % (destination.x, destination.y)) if response.response else 'the waypoint may be undefined or out of the map')
-    elif msg.data.startswith('goto'):
-        destination = Pose2D(
-            float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
+    elif msg.data.startswith('set_destination'):
+        destination = Pose2D(float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
         request = SetDestinationRequest(destination)
         response = set_destination(request)
         rospy.loginfo(
             ('Rover now is directed to x:%2.1f y:%2.1f' % (destination.x, destination.y)) if response.response else 'the destination may be undefined or out of the map')
     elif msg.data.startswith('set_pose'):
-        position = Pose2D(
-            float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
+        position = Pose2D(float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
         request = SetReferencePoseRequest(position)
         response = set_reference(request)
         rospy.loginfo(('Rover now is located at x:%2.1f y:%2.1f' % (
@@ -46,7 +44,7 @@ if __name__ == '__main__':
 
     set_destination = rospy.ServiceProxy('set_destination', SetDestination)
     enable_motors = rospy.ServiceProxy('enable_motors', SetMotorEnable)
-    set_pose = rospy.ServiceProxy('taring_the_balance', SetReferancePose)
+    set_pose = rospy.ServiceProxy('/leo_localization/taring_the_balance', SetReferancePose)
 
     rospy.wait_for_service('set_destination')
     rospy.loginfo_once('[rover_controller] connected #set_destination @rover_locomotion')
@@ -55,7 +53,7 @@ if __name__ == '__main__':
     rospy.loginfo_once('[rover_controller] connected #enable_motors @rover_locomotion')
     
     rospy.wait_for_service('/leo_localization/taring_the_balance')
-    rospy.loginfo_once('[rover_controller] connected #taring_the_balance @rover_locomotion')
+    rospy.loginfo_once('[rover_controller] connected #taring_the_balance @leo_localization')
     
 
     rospy.Subscriber('rover_listener', String,
