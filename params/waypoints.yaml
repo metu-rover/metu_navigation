@@ -14,7 +14,7 @@ waypoint_01: {
 waypoint_02: {
     x: 1.0,
     y: 1.0,
-    theta: 0.0
+    x    theta: 0.0
 }
 
 waypoint_03: {

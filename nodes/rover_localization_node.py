@@ -7,7 +7,7 @@ from leo_rover_localization.srv import SetReferancePose, SetDestinationResponse
 from nav_msgs.msg import Odometry
 
 epsilon = 0.05
-gamma = 0.01
+gamma = 0.02
 
 
 def Quad2Euler(q):
@@ -52,13 +52,21 @@ def Quad2Euler(q):
 
 
 def callback_localization(msg, args):
-    rel, tar = args
-    if (math.sqrt((rel.x - msg.pose.pose.position.x)**2 + (rel.y - msg.pose.pose.position.y)**2) < gamma):
-        rel.x = msg.pose.pose.position.x - tar.x
-        rel.y = msg.pose.pose.position.y - tar.y
-    
-    if (abs(Quad2Euler(msg.pose.pose.orientation)[2] - rel.theta) < math.pi/150):
-        rel.theta = Quad2Euler(msg.pose.pose.orientation)[2] - tar.theta
+    rel, ref, prv = args
+    msg_x = msg.pose.pose.position.x
+    msg_y = msg.pose.pose.position.y
+    msg_theta = Quad2Euler(msg.pose.pose.orientation)[2]
+
+    if (math.sqrt((prv.x - msg_x)**2 + (prv.y - msg_y)**2) < gamma):
+        rel.x = msg_x - ref.x
+        rel.y = msg_y - ref.y
+
+    if (abs(msg_theta - prv.theta) < math.pi/150):
+        rel.theta = msg_theta - ref.theta
+
+    prv.x = msg_x
+    prv.y = msg_y
+    prv.theta = msg_theta
 
 
 def callback_locomotion(msg, vel):
@@ -82,14 +90,15 @@ if __name__ == '__main__':
     rospy.init_node('rover_localization', anonymous=True)
 
     vel = Twist()
+    temp_pose = Pose2D()
     rover_pose = Pose2D()  # msg
     relative_pose = Pose2D()  # rel
     world_pose = Pose2D()  # world
-    initial_pose = Pose2D()  # tar
+    reference_pose = Pose2D()  # tar
 
     # rufat's node
     rospy.Subscriber('odometry/filtered', Odometry,
-                     callback_localization, (relative_pose, initial_pose))
+                     callback_localization, (relative_pose, reference_pose, temp_pose))
 
     # Arda's node
     rospy.Subscriber('/base_link_transform', TransformStamped,
@@ -104,9 +113,9 @@ if __name__ == '__main__':
     rospy.wait_for_message(
         '/leo_localization/odometry/filtered', Odometry, timeout=10)
     rospy.loginfo_once('[rover_localization] connected odometry/filtered')
-    initial_pose.x = relative_pose.x
-    initial_pose.y = relative_pose.y
-    initial_pose.theta = relative_pose.theta
+    reference_pose.x = relative_pose.x
+    reference_pose.y = relative_pose.y
+    reference_pose.theta = relative_pose.theta
 
     rate = rospy.Rate(50)
 
