@@ -22,9 +22,12 @@ def rover_listener_callback(msg, args):
         response = DestSetter(request)
         rospy.loginfo(
             'Waypoint is defined and set to be destination' if response.response else 'the waypoint may be undefined or out of the map')
-    elif msg.data.startswith('go_to'):
-        waypoint = Pose2D(float(msg.data.split()[1]),float(msg.data.split()[2]),0)
-        
+    elif msg.data.startswith('goto'):
+        destination = Pose2D(float(msg.data.split()[1]),float(msg.data.split()[2]),0)
+        request = SetDestinationRequest(destination)
+        response = DestSetter(request)
+        rospy.loginfo(
+            'Waypoint is defined and set to be destination' if response.response else 'the waypoint may be undefined or out of the map')
     else:
         rospy.logerr('[rover_controller] unknown command')
 

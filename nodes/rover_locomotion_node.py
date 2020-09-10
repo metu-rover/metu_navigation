@@ -9,6 +9,21 @@ from leo_rover_localization.srv import SetDestination
 from leo_rover_localization.srv import SetMotorEnable
 
 epsilon = 0.25
+epsilon_normal = 3.00
+
+
+def normal_length(rover, vertex, marker):
+    m = (vertex.y - rover.y) / (vertex.x - rover.x)
+    return (m * marker.x - marker.y - m * rover.x + rover.y) / math.sqrt(m ** 2 + 1)
+
+
+def UpdateYawOf(pose, flag):
+    if flag:
+        pose.theta += math.pi / 2
+    else:
+        pose.theta -= math.pi / 2
+
+    return pose
 
 
 def update_position(msg, rover):
@@ -73,15 +88,15 @@ if __name__ == '__main__':
     rospy.loginfo_once('#enable_motors running @rover_locomotion')
 
     # subscribe the topic /odometry/filtered to learn local position of the rover
-    rospy.Subscriber('/leo_localization/ground_truth_to_pose2D', Pose2D, update_position, rover)
+    rospy.Subscriber('/leo_localization/ground_truth_to_pose2D',
+                     Pose2D, update_position, rover)
 
     rate = rospy.Rate(100)  # 10 Hz
 
-    rospy.loginfo(rospy.get_param('/leo_locomotion/tf_static'))
+    markers = [Pose2D(float(marker[1]['x']), float(marker[1]['y']), 0)
+               for marker in rospy.get_param('/leo_locomotion/tf_static').items()]
+    waystops = []
 
-    markers = [ Pose2D(float(marker['x']),float(marker['y']), 0) for marker in rospy.get_param('/leo_locomotion/tf_static').items() ]
-
-    rospy.logerr(markers)
     rospy.logdebug_once('rover_locomotion READY!!!')
     while not rospy.is_shutdown():
 
@@ -92,14 +107,22 @@ if __name__ == '__main__':
                 if to_disable:
                     is_enable = False
                     pub.publish(Twist())
-                    rospy.logwarn('[rover_locomotion] Self-control is disabled due to arrival...')
+                    rospy.logwarn(
+                        '[rover_locomotion] Self-control is disabled due to arrival...')
                 else:
                     req4NextVertex = GetNextVertexRequest(True)
                     res4NextVertex = srv4NextVertex(req4NextVertex)
                     distance = res4NextVertex.distance
                     vertex = res4NextVertex.next_vertex
                     to_disable = res4NextVertex.at_boundary
+
+                    waystops = [marker for marker in markers if abs(
+                        normal_length(rover, vertex, marker)) < epsilon_normal]
             else:
+                if 1:
+                    pass
+                else:
+                    pass
                 distance = math.sqrt((res4NextVertex.next_vertex.x - rover.x) ** 2 +
                                      (res4NextVertex.next_vertex.y - rover.y) ** 2)
 
