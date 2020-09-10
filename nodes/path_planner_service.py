@@ -310,8 +310,9 @@ def handle_get_path_from_map(msg):
 
 
 def handle_get_next_vertex(msg):
+    global current_path, index
     if msg.to_increment:
-        at_boundary = index == len(current_path) - 1
+        at_boundary = (index == len(current_path) - 1)
         if not at_boundary:
             index += 1
 
@@ -320,7 +321,7 @@ def handle_get_next_vertex(msg):
 
         next_vertex = current_path[index]
     else:
-        at_boundary = index == 0
+        at_boundary = (index == 0)
         if not at_boundary:
             index -= 1
 
