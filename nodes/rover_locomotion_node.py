@@ -42,6 +42,7 @@ def handle_set_destination(msg):
     res4GetPath = srv4GetPath(req4GetPath)
 
     if res4GetPath.is_path_updated:
+        global to_disable
         destination = msg.destination
         to_disable = False
         distance = 0
@@ -73,6 +74,7 @@ def handle_base_link_transform(msg):
 
     try:
         edge_markers.remove(marker)
+        rospy.loginfo('marker detected, position updated')
     except ValueError as e:
         rospy.logerr('marker cannot find in markers')
 
@@ -145,8 +147,6 @@ if __name__ == '__main__':
 
                     edge_markers = [marker for marker in markers if abs(
                         normal_length(rover, vertex, marker)) < epsilon_normal and not distance_between(marker, rover) < epsilon_normal]
-                    
-                    rospy.loginfo(edge_markers)
             else:
 
                 distance = distance_between(res4NextVertex.next_vertex, rover)
@@ -158,30 +158,28 @@ if __name__ == '__main__':
 
                     
                     if abs(alpha - rover.theta) < epsilon:
-                        rospy.loginfo('i quit in if any_markers')
+                        rospy.loginfo('marker has a margin of 15 deg. at most')
                         any_markers = False
                         try:
                             edge_markers.remove(marker)
                         except ValueError as e:
                             rospy.logerr('marker cannot find in markers')
                     elif abs(alpha - rover.theta) < 3 * epsilon:
-                        K_c = K_p / 10
-                        rospy.loginfo('i quit in if any_markers')
+                        K_c = K_p / 7
+                        rospy.loginfo_throttle(1,'marker has a margin of 45 deg. at most')
                     else:
-                        K_c = K_p / 5
-                        rospy.loginfo('i quit in if any_markers')
+                        K_c = K_p / 3
+                        rospy.loginfo_throttle(1,'marker has a margin of 90 deg. at most')
                 else:
                     # any_marker = True
                     marker_distances = [
                         (distance_between(marker, rover), marker) for marker in edge_markers]
                     marker_distances.sort()
 
-                    rospy.loginfo(marker_distances)
-
                     if marker_distances != [] and marker_distances[0][0] < epsilon_normal:
                         any_markers = True
                         marker = marker_distances[0][1]
-                        rospy.loginfo('i am in else if')
+                        rospy.loginfo('enemy spotted!')
 
                     alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
                                        res4NextVertex.next_vertex.x - rover.x)
