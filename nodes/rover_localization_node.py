@@ -7,6 +7,7 @@ from leo_rover_localization.srv import SetReferancePose, SetDestinationResponse
 from nav_msgs.msg import Odometry
 
 epsilon = 0.05
+gamma = 0.01
 
 
 def Quad2Euler(q):
@@ -51,10 +52,13 @@ def Quad2Euler(q):
 
 
 def callback_localization(msg, args):
-    rover, mover = args
-    rover.x = msg.pose.pose.position.x - mover.x
-    rover.y = msg.pose.pose.position.y - mover.y
-    rover.theta = Quad2Euler(msg.pose.pose.orientation)[2] - mover.theta
+    rel, tar = args
+    if (math.sqrt((rel.x - msg.pose.pose.position.x)**2 + (rel.y - msg.pose.pose.position.y)**2) < gamma):
+        rel.x = msg.pose.pose.position.x - tar.x
+        rel.y = msg.pose.pose.position.y - tar.y
+    
+    if (abs(Quad2Euler(msg.pose.pose.orientation)[2] - rel.theta) < math.pi/150):
+        rel.theta = Quad2Euler(msg.pose.pose.orientation)[2] - tar.theta
 
 
 def callback_locomotion(msg, vel):
@@ -63,15 +67,11 @@ def callback_locomotion(msg, vel):
 
 
 def callback_artag_marker(msg, args):
-    odm, cum, vel = args
+    rel, world, vel = args
 
     if abs(vel.linear.x) < epsilon and abs(vel.angular.z) < 2 * epsilon:
-        cum.x = msg.transform.translation.x - odm.x
-        cum.y = msg.transform.translation.y - odm.y
-        # rufat - odometry
-        # rufat_0
-        # arda - transform ar_tag
-        # total
+        world.x = msg.transform.translation.x - rel.x
+        world.y = msg.transform.translation.y - rel.y
 
 
 def handle_taring_the_balance(msg):
@@ -81,19 +81,19 @@ def handle_taring_the_balance(msg):
 if __name__ == '__main__':
     rospy.init_node('rover_localization', anonymous=True)
 
-    msg = Pose2D()  # msg
-    map_frame_pose = Pose2D()  # rover
-    total = Pose2D()  # total
-    reference = Pose2D()  # balance
     vel = Twist()
+    rover_pose = Pose2D()  # msg
+    relative_pose = Pose2D()  # rel
+    world_pose = Pose2D()  # world
+    initial_pose = Pose2D()  # tar
 
     # rufat's node
     rospy.Subscriber('odometry/filtered', Odometry,
-                     callback_localization, (map_frame_pose, reference))
+                     callback_localization, (relative_pose, initial_pose))
 
     # Arda's node
     rospy.Subscriber('/base_link_transform', TransformStamped,
-                     callback_artag_marker, (map_frame_pose, total, vel))
+                     callback_artag_marker, (relative_pose, world_pose, vel))
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
     rospy.Service('taring_the_balance', SetReferancePose,
                   handle_taring_the_balance)
@@ -103,18 +103,18 @@ if __name__ == '__main__':
     rospy.wait_for_message(
         '/leo_localization/odometry/filtered', Odometry, timeout=10)
     rospy.loginfo_once('[rover_localization] connected odometry/filtered')
-    reference.x = map_frame_pose.x
-    reference.y = map_frame_pose.y
-    reference.theta = map_frame_pose.theta
+    initial_pose.x = relative_pose.x
+    initial_pose.y = relative_pose.y
+    initial_pose.theta = relative_pose.theta
 
     rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
         # init + A_0 + (R_cur - R_0)
-        msg.x = total.x + map_frame_pose.x
-        msg.y = total.y + map_frame_pose.y
-        msg.theta = map_frame_pose.theta
+        rover_pose.x = world_pose.x + relative_pose.x
+        rover_pose.y = world_pose.y + relative_pose.y
+        rover_pose.theta = relative_pose.theta
 
-        pub.publish(msg)
+        pub.publish(rover_pose)
 
         rate.sleep()
