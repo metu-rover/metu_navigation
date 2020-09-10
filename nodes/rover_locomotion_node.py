@@ -144,9 +144,9 @@ if __name__ == '__main__':
                     to_disable = res4NextVertex.at_boundary
 
                     edge_markers = [marker for marker in markers if abs(
-                        normal_length(rover, vertex, marker)) < epsilon_normal]
-                    for edge_marker in edge_markers:
-                        rospy.loginfo('marker x:%3.2f y:%3.2f' % edge_marker.x, edge_marker.y)
+                        normal_length(rover, vertex, marker)) < epsilon_normal and not distance_between(marker, rover) < epsilon_normal]
+                    
+                    rospy.loginfo(edge_markers)
             else:
 
                 distance = distance_between(res4NextVertex.next_vertex, rover)
@@ -156,8 +156,7 @@ if __name__ == '__main__':
                     dot_product = 0
                     alpha = math.atan2(marker.y - rover.y, marker.x - rover.x)
 
-                    K_c = K_p / 15
-
+                    
                     if abs(alpha - rover.theta) < epsilon:
                         rospy.loginfo('i quit in if any_markers')
                         any_markers = False
@@ -165,14 +164,19 @@ if __name__ == '__main__':
                             markers.remove(marker)
                         except ValueError as e:
                             rospy.logerr('marker cannot find in markers')
+                    elif abs(alpha - rover.theta) < 3 * epsilon:
+                        K_c = K_p / 10
+                        rospy.loginfo('i quit in if any_markers')
+                    else:
+                        K_c = K_p / 5
+                        rospy.loginfo('i quit in if any_markers')
                 else:
                     # any_marker = True
                     marker_distances = [
                         (distance_between(marker, rover), marker) for marker in edge_markers]
                     marker_distances.sort()
 
-                    for marker_distance in marker_distances:
-                        rospy.loginfo(marker_distance)
+                    rospy.loginfo(marker_distances)
 
                     if marker_distances != [] and marker_distances[0][0] < epsilon_normal:
                         any_markers = True
