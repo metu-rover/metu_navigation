@@ -2,7 +2,7 @@
 
 import rospy
 import math
-from geometry_msgs.msg import Twist, Pose, PoseStamped, Pose2D
+from geometry_msgs.msg import Twist, Pose, PoseStamped, Pose2D, TransformStamped
 from leo_rover_localization.srv import GetNextVertex, GetNextVertexRequest
 from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
 from leo_rover_localization.srv import SetDestination
@@ -115,6 +115,8 @@ if __name__ == '__main__':
     # subscribe the topic /odometry/filtered to learn local position of the rover
     rospy.Subscriber('/leo_localization/ground_truth_to_pose2D',
                      Pose2D, update_position, rover)
+
+    rospy.Subscriber('/handle_base_link_transform', TransformStamped,handle_base_link_transform)
 
     rate = rospy.Rate(100)  # 10 Hz
 
