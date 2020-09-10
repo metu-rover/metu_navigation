@@ -273,7 +273,7 @@ class MathOperations():
 
 
 def handle_get_path_from_map(msg):
-    global MapNp, WayList, mathobs1, map1
+    global MapNp, WayList, mathobs1, map1,x,y
     global current_path, index
     for ways in MapNp["Paths"]:
         WayList.append(ways)
@@ -281,10 +281,10 @@ def handle_get_path_from_map(msg):
     path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
     outsqare = ((0, 0), map1.mapsizepixel)
     startPoint = Points(
-        (msg.target.x * map1.multi + 13, msg.target.y * map1.multi + 367), path.Ways)
+        (msg.target.x * map1.multi + x, msg.target.y * map1.multi + y), path.Ways)
 
-    xaxis = msg.destin.x * map1.multi + 13
-    yaxis = msg.destin.y * map1.multi * -1 + 367
+    xaxis = msg.destin.x * map1.multi + x
+    yaxis = msg.destin.y * map1.multi * -1 + y
     if not xaxis <= outsqare[0][0] and not xaxis >= outsqare[1][0] and not yaxis <= outsqare[0][1] and not yaxis >= outsqare[1][1]:
         endPoint = Points(
             (xaxis, yaxis), path.Ways)
@@ -303,8 +303,8 @@ def handle_get_path_from_map(msg):
         current_path = [msg.target]
 
         for wp in path.path:
-            current_path.append(Pose2D((wp[1][0] - 13) / map1.multi, (wp[1][1] - 367)/ map1.multi * -1, math.atan2(
-                (wp[1][1]-367) * -1 / map1.multi - current_path[-1].y, (wp[1][0]-13) / map1.multi - current_path[-1].x)))
+            current_path.append(Pose2D((wp[1][0] - x) / map1.multi, (wp[1][1] - y)/ map1.multi * -1, math.atan2(
+                (wp[1][1]-y) * -1 / map1.multi - current_path[-1].y, (wp[1][0]-x) / map1.multi - current_path[-1].x)))
         for vertex in current_path:
             rospy.loginfo('x:%3.2f y:%3.2f t:%3.2f' %
                           (vertex.x, vertex.y, vertex.theta))
@@ -351,6 +351,9 @@ if __name__ == "__main__":
     mathobs1 = MathOperations()
     current_path = [Pose2D(0, 0, 0)]
     index = -1
+    #(1.7, 25.5, '0')
+    x=(1.7*map1.multi)
+    y=map1.mapsizepixel[1]-(25.5*map1.multi)
     rospy.init_node('path_planner', anonymous=True)
 
     if len(rospy.myargv()) == 1:

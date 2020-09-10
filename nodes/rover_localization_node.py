@@ -3,12 +3,9 @@ import math
 import rospy
 import tf2_ros
 from geometry_msgs.msg import TransformStamped, PoseStamped, Pose2D, Twist, TwistStamped
-from leo_rover_localization.srv import SetReferencePose, SetReferencePoseResponse
 from nav_msgs.msg import Odometry
 
 epsilon = 0.05
-gamma = 0.02
-
 
 def Quad2Euler(q):
     """
@@ -51,22 +48,14 @@ def Quad2Euler(q):
     return roll, pitch, yaw
 
 
-def callback_localization(msg, args):
-    rel, ref, prev = args
-    new_x = msg.pose.pose.position.x
-    new_y = msg.pose.pose.position.y
-    new_theta = Quad2Euler(msg.pose.pose.orientation)[2]
-
-    if (math.sqrt((new_x - prev.x) ** 2 + (new_y - prev.y) ** 2) < gamma):
-        rel.x = new_x - ref.x
-        rel.y = new_y - ref.y
-
-    if (abs(new_theta - prev.theta) < math.pi/150):
-        rel.theta = new_theta - ref.theta
-
-    prev.x = new_x
-    prev.y = new_y
-    prev.theta = new_theta
+def callback_localization(msg, odm):
+    odm.pose.pose.position.x = msg.pose.pose.position.x
+    odm.pose.pose.position.y = msg.pose.pose.position.y
+    odm.pose.pose.position.z = msg.pose.pose.position.z
+    odm.pose.pose.orientation.x = msg.pose.pose.orientation.x
+    odm.pose.pose.orientation.y = msg.pose.pose.orientation.y
+    odm.pose.pose.orientation.z = msg.pose.pose.orientation.z
+    odm.pose.pose.orientation.w = msg.pose.pose.orientation.w
 
 
 def callback_locomotion(msg, vel):
@@ -75,62 +64,40 @@ def callback_locomotion(msg, vel):
 
 
 def callback_artag_marker(msg, args):
-    rel, world, vel = args
-
+    odm, cum, vel = args
+    
     if abs(vel.linear.x) < epsilon and abs(vel.angular.z) < 2 * epsilon:
-        world.x = msg.transform.translation.x - rel.x
-        world.y = msg.transform.translation.y - rel.y
-
-
-def handle_taring_the_balance(msg, args):
-    rospy.loginfo('#handle_taring_the_balance responding...')
-    relative, world = args
-    world.x = msg.referance.x - relative.x
-    world.y = msg.referance.y - relative.y
-    world.theta = msg.referance.theta - relative.theta
-    rospy.loginfo('rover now at \{x:%4.2f, y:%4.2f, theta:%4.2f\}' % (
-        msg.referance.x, msg.referance.y, msg.referance.theta))
-    return SetReferencePoseResponse(True)
+        cum.x = msg.transform.translation.x - odm.pose.pose.position.x
+        cum.y = msg.transform.translation.y - odm.pose.pose.position.y
 
 
 if __name__ == '__main__':
     rospy.init_node('rover_localization', anonymous=True)
 
+    msg = Pose2D()
+    total = Pose2D()
+    odm = Odometry()
     vel = Twist()
-    temp_pose = Pose2D()
-    rover_pose = Pose2D()
-    relative_pose = Pose2D()
-    reference_pose = Pose2D()
-    world_frame_pose = Pose2D()
 
     # rufat's node
-    rospy.Subscriber('odometry/filtered', Odometry,
-                     callback_localization, (relative_pose, reference_pose, temp_pose))
+    rospy.Subscriber('odometry/filtered', Odometry, callback_localization, odm)
 
     # Arda's node
     rospy.Subscriber('/base_link_transform', TransformStamped,
-                     callback_artag_marker, (relative_pose, world_frame_pose, vel))
+                     callback_artag_marker, (odm, total, vel))
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
-    rospy.Service('taring_the_balance', SetReferencePose,
-                  handle_taring_the_balance)
-    rospy.loginfo_once('#taring_the_balance running @rover_localization')
 
-    pub = rospy.Publisher('ground_truth_to_pose2D', Pose2D, queue_size=10)
+    pub = rospy.Publisher('ground_truth_to_pose', Pose2D, queue_size=10)
 
-    rospy.wait_for_message(
-        '/leo_localization/odometry/filtered', Odometry, timeout=10)
-    rospy.loginfo_once('[rover_localization] connected odometry/filtered')
-    reference_pose.x = relative_pose.x
-    reference_pose.y = relative_pose.y
-    reference_pose.theta = relative_pose.theta
+    rospy.wait_for_message('odometry/filtered', Odometry, timeout=60)
 
     rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
-        rover_pose.x = world_frame_pose.x + relative_pose.x
-        rover_pose.y = world_frame_pose.y + relative_pose.y
-        rover_pose.theta = relative_pose.theta
-
-        pub.publish(rover_pose)
+        msg.x = total.x + odm.pose.pose.position.x
+        msg.y = total.y + odm.pose.pose.position.y
+        msg.theta = Quad2Euler(odm.pose.pose.orientation)[2]
+        
+        pub.publish(msg)
 
         rate.sleep()
