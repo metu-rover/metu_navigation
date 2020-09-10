@@ -94,7 +94,7 @@ if __name__ == '__main__':
     rate = rospy.Rate(100)  # 10 Hz
 
     markers = [Pose2D(float(marker[1]['x']), float(marker[1]['y']), 0)
-               for marker in rospy.get_param('/leo_locomotion/tf_static').items()]
+               for marker in rospy.get_param('tf_static').items()]
     waystops = []
 
     rospy.logdebug_once('rover_locomotion READY!!!')

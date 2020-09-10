@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import math
 import MapDesign
 from MapDesign import Obstacles, map1
@@ -8,10 +7,13 @@ import numpy as np
 from collections import defaultdict
 import itertools
 
+shift_point = 33.6, 345.1
+
 class Points():
 
     def __init__(self, coords, Way):
-        self.Coord = (coords[0] * map1.multi + 13, coords[1] * map1.multi * -1 + 367)
+        self.Coord = (coords[0] * map1.multi + shift_point[0],
+                      coords[1] * map1.multi * -1 + shift_point[1])
         self.Roughness = "Infinity"
 
         check = self.IsItInside(Way.ObstaclesList)
@@ -108,7 +110,7 @@ class Path():
         if shortest_way == []:
             # check obstacles function returns empty list when there is obstacle between start and end points so that path planning algorithm is used for create path
             shortest_way, sum_cost = self.graph.CalculatePath(
-                self.graph, Start_Point.Coord, End_Point.Coord, map1.multi, (13, 367))
+                self.graph, Start_Point.Coord, End_Point.Coord, map1.multi, shift_point)
         return shortest_way, sum_cost
 
     def CheckObstacles(self, startpoint, endpoint, ways):
@@ -203,9 +205,10 @@ class Dijkstra():
             if index == len(path_points) - 1:
                 break
             # calculate every cost of lines insted of calculate just total cost
-            first=((points[0]-values[0])/multi,(points[1]-values[1])/multi)
-            second=((path_points[index+1][0]-values[0])/multi*-1,(path_points[index+1][1]-values[1])/multi*-1)
-            path.append((first, second)) 
+            first = ((points[0]-values[0])/multi, (points[1]-values[1])/multi)
+            second = ((path_points[index+1][0]-values[0])/multi*-1,
+                      (path_points[index+1][1]-values[1])/multi*-1)
+            path.append((first, second))
 
         return path, sum_cost
 
@@ -279,15 +282,13 @@ else:
     np_load_old = np.load
     # modify the default parameters of np.loadWe
     np.load = lambda *a, **k: np_load_old(*a, allow_pickle=True, **k)
-    pt = str(os.getcwd() + '/leo_map.npz')
+    pt = str(os.getcwd + '/leo_map.npz')
     MapNp = np.load(pt)
     # call load_data with allow_pickle implicitly set to true
     # # restore np.load for future normal usage
     np.load = np_load_old
 
-    WayList = [ ways for ways in MapNp['Paths'] ]
+    WayList = [ways for ways in MapNp['Paths']]
     path = Path(MapDesign.Ways(MapNp["ObstacleList"]), WayList)
     ObstacleList = []
     mathobs1 = MathOperations()
-
-

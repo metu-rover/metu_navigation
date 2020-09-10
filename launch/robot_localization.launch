@@ -3,6 +3,7 @@
     <node pkg="leo_rover_localization" type="rover_localization_node.py" name="rover_localization" output='screen' />
     <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
       <rosparam command="load" file="$(find leo_rover_localization)/params/ekf_config.yaml" />
+      <rosparam command='load' file='$(find leo_rover_artag)/params/ar_tags.yaml' />
     </node>
   </group>
 </launch>

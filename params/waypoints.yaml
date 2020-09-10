@@ -6,44 +6,37 @@
 # }
 
 waypoint_01: {
-    x: 1.0,
-    y: 0.0,
+    x: 12.19,
+    y: 8.73,
     theta: 0.0
 }
 
 waypoint_02: {
-    x: 1.0,
-    y: 1.0,
+    x: 25.04,
+    y: 4.36,
     theta: 0.0
 }
 
 waypoint_03: {
-    x: 0.0,
-    y: 0.0,
+    x: 28.62,
+    y: -6.17,
     theta: 0.0
 }
 
 waypoint_04: {
-    x: 0.0,
-    y: 0.0,
+    x: 11.63,
+    y: -16.85,
     theta: 0.0
 }
 
-waypoint_05: {
-    x: 0.0,
-    y: 0.0,
+waypoint_5A: {
+    x: 7.64,
+    y: -5.55,
     theta: 0.0
 }
 
-waypoint_S0: {
-    x: 0.0,
-    y: 0.0,
-    theta: 0.0
-}
-
-# Maintanance Pano
-waypoint_Mp: {
-    x: 0.0,
-    y: 0.0,
+waypoint_5B: {
+    x: 27.48,
+    y: -13.65,
     theta: 0.0
 }

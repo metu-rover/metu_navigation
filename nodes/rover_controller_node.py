@@ -21,19 +21,19 @@ def rover_listener_callback(msg, args):
         request = SetDestinationRequest(destination)
         response = set_destination(request)
         rospy.loginfo(
-            ('Rover now is directed to %d at x:%2.1f y:%2.1f' % (msg.data[-2:], destination.x, destination.y)) if response.response else 'the waypoint may be undefined or out of the map')
+            ('Rover now is directed to %s at x:%2.1f y:%2.1f' % (msg.data[-2:], destination.x, destination.y)) if response.response else 'the waypoint may be undefined or out of the map')
     elif msg.data.startswith('set_destination'):
-        waypoint = rospy.get_param('waypoint_' + msg.data[-2:])
-        destination = Pose2D(waypoint['x'], waypoint['y'], waypoint['theta'])
+        destination = Pose2D(float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
         request = SetDestinationRequest(destination)
         response = set_destination(request)
         rospy.loginfo(
-            ('Rover now is directed to %2d at x:%2.1f y:%2.1f' % (msg.data[-2:], destination.x, destination.y)) if response.response else 'the destination may be undefined or out of the map')
+            ('Rover now is directed to %s at x:%2.1f y:%2.1f' % (msg.data[-2:], destination.x, destination.y)) if response.response else 'the destination may be undefined or out of the map')
     elif msg.data.startswith('set_pose'):
-        position = Pose2D(float(msg.data.split()[1]), float(msg.data.split()[2]), 0)
+        waypoint = rospy.get_param('waypoint_' + msg.data[-2:])
+        position = Pose2D(waypoint['x'], waypoint['y'], waypoint['theta'])
         request = SetReferencePoseRequest(position)
         response = set_reference(request)
-        rospy.loginfo(('Rover now is located at x:%2.1f y:%2.1f' % (
+        rospy.loginfo(('Rover now is located %s at x:%2.1f y:%2.1f' % (msg.data[-2:],
             position.x, position.y)) if response.response else 'something went wrong')
     else:
         rospy.logerr('[rover_controller] unknown command')
