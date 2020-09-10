@@ -1,41 +1,33 @@
 #!/usr/bin/env python
 
 import rospy
-import math
-from geometry_msgs.msg import Twist, Pose, PoseStamped, Pose2D
-from leo_rover_localization.srv import GetNextVertex, GetNextVertexRequest
-from leo_rover_localization.srv import GetPathFromMap, GetPathFromMapRequest
-from leo_rover_localization.srv import SetDestination
-from leo_rover_localization.srv import SetMotorEnable
-
-epsilon = 0.25
+from std_msgs.msg import String
+from geometry_msgs.msg import Pose2D
+from leo_rover_localization.srv import SetMotorEnable, SetMotorEnableRequest
+from leo_rover_localization.srv import SetDestination, SetDestinationRequest
 
 
-def update_position(msg, rover):
-    rover.x = msg.x
-    rover.y = msg.y
-    rover.theta = msg.theta
-
-
-def handle_set_destination(msg):
-    global rover, distance
-    req4GetPath = GetPathFromMapRequest(rover, msg.destination)
-    res4GetPath = srv4GetPath(req4GetPath)
-
-    if res4GetPath.is_path_updated:
-        to_disable = False
-        distance = 0
-
-    return res4GetPath.is_path_updated
-
-
-def handle_enable_motors(msg):
-    global is_enable
-    global pub
-    is_enable = msg.enable
-
-    if is_enable:
-        return "Self-control is enabled, Don't panic!"
+def rover_listener_callback(msg, args):
+    motorEnabler, DestSetter = args
+    rospy.loginfo('[rover_controller] responding...')
+    if msg.data.endswith('_motors'):
+        request = SetMotorEnableRequest(msg.data.startswith('enable'))
+        response = motorEnabler(request)
+        rospy.loginfo(response.response)
+    elif msg.data.startswith('set_waypoint_'):
+        rospy.loginfo(msg.data[-2:])
+        waypoint = rospy.get_param('waypoint_' + msg.data[-2:])
+        destination = Pose2D(waypoint['x'], waypoint['y'], waypoint['theta'])
+        request = SetDestinationRequest(destination)
+        response = DestSetter(request)
+        rospy.loginfo(
+            'Waypoint is defined and set to be destination' if response.response else 'the waypoint may be undefined or out of the map')
+    elif msg.data.startswith('goto'):
+        destination = Pose2D(float(msg.data.split()[1]),float(msg.data.split()[2]),0)
+        request = SetDestinationRequest(destination)
+        response = DestSetter(request)
+        rospy.loginfo(
+            'Waypoint is defined and set to be destination' if response.response else 'the waypoint may be undefined or out of the map')
     else:
         pub.publish(Twist())
         return "Self-control is disabled. You are boss now!"
