@@ -62,7 +62,7 @@ def handle_enable_motors(msg):
 
 
 def handle_base_link_transform(msg):
-    global any_markers, markers, marker, destination, rover
+    global any_markers, edge_markers, marker, destination, rover
     request = GetPathFromMapRequest(rover, destination)
     response = srv4GetPath(request)
     any_markers = False
@@ -72,7 +72,7 @@ def handle_base_link_transform(msg):
         distance = 0
 
     try:
-        markers.remove(marker)
+        edge_markers.remove(marker)
     except ValueError as e:
         rospy.logerr('marker cannot find in markers')
 
@@ -161,7 +161,7 @@ if __name__ == '__main__':
                         rospy.loginfo('i quit in if any_markers')
                         any_markers = False
                         try:
-                            markers.remove(marker)
+                            edge_markers.remove(marker)
                         except ValueError as e:
                             rospy.logerr('marker cannot find in markers')
                     elif abs(alpha - rover.theta) < 3 * epsilon:
