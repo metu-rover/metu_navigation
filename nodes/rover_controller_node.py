@@ -71,7 +71,7 @@ if __name__ == '__main__':
     rospy.Service('enable_motors', SetMotorEnable, handle_enable_motors)
 
     # subscribe the topic /odometry/filtered to learn local position of the rover
-    rospy.Subscriber('/leo_localization/ground_truth_to_pose', Pose2D, update_position, rover)
+    rospy.Subscriber('/leo_localization/ground_truth_to_pose2D', Pose2D, update_position, rover)
 
     rate = rospy.Rate(100)  # 10 Hz
 

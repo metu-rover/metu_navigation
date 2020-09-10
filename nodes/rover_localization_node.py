@@ -87,7 +87,7 @@ if __name__ == '__main__':
                      callback_artag_marker, (odm, total, vel))
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
 
-    pub = rospy.Publisher('ground_truth_to_pose', Pose2D, queue_size=10)
+    pub = rospy.Publisher('ground_truth_to_pose2D', Pose2D, queue_size=10)
 
     rospy.wait_for_message('odometry/filtered', Odometry, timeout=60)
 
