@@ -69,6 +69,7 @@ def handle_base_link_transform(msg):
     any_markers = False
 
     if response.is_path_updated:
+        global to_disable
         to_disable = False
         distance = 0
 
