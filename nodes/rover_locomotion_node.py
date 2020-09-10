@@ -145,17 +145,21 @@ if __name__ == '__main__':
 
                     edge_markers = [marker for marker in markers if abs(
                         normal_length(rover, vertex, marker)) < epsilon_normal]
+                    for edge_marker in edge_markers:
+                        rospy.loginfo('marker x:%3.2f y:%3.2f' % edge_marker.x, edge_marker.y)
             else:
 
                 distance = distance_between(res4NextVertex.next_vertex, rover)
 
                 if any_markers:
+                    rospy.loginfo_throttle(0.5, 'in if any_markers')
                     dot_product = 0
                     alpha = math.atan2(marker.y - rover.y, marker.x - rover.x)
 
                     K_c = K_p / 15
 
                     if abs(alpha - rover.theta) < epsilon:
+                        rospy.loginfo('i quit in if any_markers')
                         any_markers = False
                         try:
                             markers.remove(marker)
@@ -163,12 +167,17 @@ if __name__ == '__main__':
                             rospy.logerr('marker cannot find in markers')
                 else:
                     # any_marker = True
-                    marker_distance = [
+                    marker_distances = [
                         (distance_between(marker, rover), marker) for marker in edge_markers]
-                    marker_distance.sort()
-                    if marker_distance != [] and marker_distance[0][0] < epsilon_normal:
+                    marker_distances.sort()
+
+                    for marker_distance in marker_distances:
+                        rospy.loginfo(marker_distance)
+
+                    if marker_distances != [] and marker_distances[0][0] < epsilon_normal:
                         any_markers = True
-                        marker = marker_distance[0][1]
+                        marker = marker_distances[0][1]
+                        rospy.loginfo('i am in else if')
 
                     alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
                                        res4NextVertex.next_vertex.x - rover.x)
