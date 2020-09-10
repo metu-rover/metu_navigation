@@ -210,7 +210,7 @@ class Dijkstra():
                 break
             # calculate every cost of lines insted of calculate just total cost
             first = ((points[0]-values[0])/multi, (points[1]-values[1])/multi)
-            second = ((path_points[index+1][0]-values[0])/multi*-1,
+            second = ((path_points[index+1][0]-values[0])/multi,
                       (path_points[index+1][1]-values[1])/multi*-1)
             path.append((first, second))
 
