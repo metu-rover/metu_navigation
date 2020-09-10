@@ -74,8 +74,8 @@ def callback_artag_marker(msg, args):
         world.y = msg.transform.translation.y - rel.y
 
 
-def handle_taring_the_balance(msg):
-    callback_artag_marker()
+def handle_taring_the_balance(msg, ref):
+    msg.referance
 
 
 if __name__ == '__main__':
@@ -97,6 +97,7 @@ if __name__ == '__main__':
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
     rospy.Service('taring_the_balance', SetReferancePose,
                   handle_taring_the_balance)
+    rospy.loginfo_once('#taring_the_balance running @rover_localization')
 
     pub = rospy.Publisher('ground_truth_to_pose2D', Pose2D, queue_size=10)
 
