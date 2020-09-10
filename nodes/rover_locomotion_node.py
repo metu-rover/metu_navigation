@@ -16,8 +16,10 @@ def normal_length(rover, vertex, marker):
     m = (vertex.y - rover.y) / (vertex.x - rover.x)
     return (m * marker.x - marker.y - m * rover.x + rover.y) / math.sqrt(m ** 2 + 1)
 
+
 def distance_between(pose1, pose2):
     return math.sqrt((pose1.x - pose2.x) ** 2 + (pose1.y - pose2.y) ** 2)
+
 
 def UpdateYawOf(pose, flag):
     if flag:
@@ -35,11 +37,12 @@ def update_position(msg, rover):
 
 
 def handle_set_destination(msg):
-    global rover, distance
+    global rover, distance, destination
     req4GetPath = GetPathFromMapRequest(rover, msg.destination)
     res4GetPath = srv4GetPath(req4GetPath)
 
     if res4GetPath.is_path_updated:
+        destination = msg.destination
         to_disable = False
         distance = 0
 
@@ -58,9 +61,28 @@ def handle_enable_motors(msg):
         return "Self-control is disabled. You are boss now!"
 
 
+def handle_base_link_transform(msg):
+    global any_markers, markers, marker, destination, rover
+    request = GetPathFromMapRequest(rover, destination)
+    response = srv4GetPath(request)
+    any_markers = False
+
+    if response.is_path_updated:
+        to_disable = False
+        distance = 0
+
+    try:
+        markers.remove(marker)
+    except ValueError as e:
+        rospy.logerr('marker cannot find in markers')
+
+    return response.is_path_updated
+
+
 if __name__ == '__main__':
     is_enable = False
     to_disable = False
+    any_markers = False
     distance = -1
     u_max = 0.5
     K_p = math.pi / 3
@@ -75,6 +97,7 @@ if __name__ == '__main__':
 
     rover = Pose2D()
     vertex = Pose2D()
+    destination = Pose2D()
 
     # wait until the service get_path_from_map to get a path to go destination vertex
     srv4GetPath = rospy.ServiceProxy('get_path_from_map', GetPathFromMap)
@@ -97,7 +120,7 @@ if __name__ == '__main__':
 
     markers = [Pose2D(float(marker[1]['x']), float(marker[1]['y']), 0)
                for marker in rospy.get_param('tf_static').items()]
-    waystops = []
+    edge_markers = []
 
     rospy.logdebug_once('rover_locomotion READY!!!')
     while not rospy.is_shutdown():
@@ -118,23 +141,43 @@ if __name__ == '__main__':
                     vertex = res4NextVertex.next_vertex
                     to_disable = res4NextVertex.at_boundary
 
-                    waystops = [marker for marker in markers if abs(
+                    edge_markers = [marker for marker in markers if abs(
                         normal_length(rover, vertex, marker)) < epsilon_normal]
             else:
 
-                distance = distance_between(res4NextVertex.next_vertex, rover) 
-                
-                for waystop in [waystop for waystop in waystops if distance_between(waystop, rover) < epsilon_normal]:
-                    pass
+                distance = distance_between(res4NextVertex.next_vertex, rover)
+
+                if any_markers:
+                    dot_product = 0
+                    alpha = math.atan2(marker.y - rover.y, marker.x - rover.x)
+
+                    K_c = K_p / 15
+
+                    if abs(alpha - rover.theta) < epsilon:
+                        any_markers = False
+                        try:
+                            markers.remove(marker)
+                        except ValueError as e:
+                            rospy.logerr('marker cannot find in markers')
                 else:
+                    # any_marker = True
+                    marker_distance = [
+                        (distance_between(marker, rover), marker) for marker in edge_markers]
+                    marker_distance.sort()
+                    if marker_distance != [] and marker_distance[0][0] < epsilon_normal:
+                        any_markers = True
+                        marker = marker_distance[0][1]
+
                     alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
-                                    res4NextVertex.next_vertex.x - rover.x)
+                                       res4NextVertex.next_vertex.x - rover.x)
 
                     dot_product = (math.cos(alpha) * math.cos(rover.theta) +
-                                math.sin(alpha) * math.sin(rover.theta))
-                    
-                    msg.linear.x = dot_product * u_max if dot_product >= 0 else 0
-                    msg.angular.z = (alpha - rover.theta) * K_p
+                                   math.sin(alpha) * math.sin(rover.theta))
 
-                    pub.publish(msg)
+                    K_c = K_p
+
+                msg.linear.x = dot_product * u_max if dot_product >= 0 else 0
+                msg.angular.z = (alpha - rover.theta) * K_c
+
+                pub.publish(msg)
         rate.sleep()
