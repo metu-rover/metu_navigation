@@ -16,6 +16,8 @@ def normal_length(rover, vertex, marker):
     m = (vertex.y - rover.y) / (vertex.x - rover.x)
     return (m * marker.x - marker.y - m * rover.x + rover.y) / math.sqrt(m ** 2 + 1)
 
+def distance_between(pose1, pose2):
+    return math.sqrt((pose1.x - pose2.x) ** 2 + (pose1.y - pose2.y) ** 2)
 
 def UpdateYawOf(pose, flag):
     if flag:
@@ -120,19 +122,19 @@ if __name__ == '__main__':
                         normal_length(rover, vertex, marker)) < epsilon_normal]
             else:
 
-                distance = math.sqrt((res4NextVertex.next_vertex.x - rover.x) ** 2 +
-                                     (res4NextVertex.next_vertex.y - rover.y) ** 2)
-                if 1:
+                distance = distance_between(res4NextVertex.next_vertex, rover) 
+                
+                for waystop in [waystop for waystop in waystops if distance_between(waystop, rover) < epsilon_normal]:
+                    pass
+                else:
                     alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
                                     res4NextVertex.next_vertex.x - rover.x)
 
                     dot_product = (math.cos(alpha) * math.cos(rover.theta) +
                                 math.sin(alpha) * math.sin(rover.theta))
-                else:
-                    pass
                     
-                msg.linear.x = dot_product * u_max if dot_product >= 0 else 0
-                msg.angular.z = (alpha - rover.theta) * K_p
+                    msg.linear.x = dot_product * u_max if dot_product >= 0 else 0
+                    msg.angular.z = (alpha - rover.theta) * K_p
 
-                pub.publish(msg)
+                    pub.publish(msg)
         rate.sleep()
