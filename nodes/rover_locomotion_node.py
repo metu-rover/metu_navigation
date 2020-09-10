@@ -166,8 +166,11 @@ if __name__ == '__main__':
                             rospy.loginfo('marker detected, position updated')
                         except ValueError as e:
                             rospy.logerr('marker cannot find in markers')
-                    elif abs(alpha - rover.theta) < 3 * epsilon:
+                    elif abs(alpha - rover.theta) < 2 * epsilon:
                         K_c = K_p / 7
+                        rospy.loginfo_throttle(1,'marker has a margin of 30 deg. at most')
+                    elif abs(alpha - rover.theta) < 3 * epsilon:
+                        K_c = K_p / 5
                         rospy.loginfo_throttle(1,'marker has a margin of 45 deg. at most')
                     else:
                         K_c = K_p / 3
