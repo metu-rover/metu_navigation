@@ -3,7 +3,7 @@ import math
 import rospy
 import tf2_ros
 from geometry_msgs.msg import TransformStamped, PoseStamped, Pose2D, Twist, TwistStamped
-from leo_rover_localization.srv import SetReferancePose, SetDestinationResponse
+from leo_rover_localization.srv import SetReferencePose, SetReferencePoseResponse
 from nav_msgs.msg import Odometry
 
 epsilon = 0.05
@@ -52,21 +52,21 @@ def Quad2Euler(q):
 
 
 def callback_localization(msg, args):
-    rel, ref, prv = args
-    msg_x = msg.pose.pose.position.x
-    msg_y = msg.pose.pose.position.y
-    msg_theta = Quad2Euler(msg.pose.pose.orientation)[2]
+    rel, ref, prev = args
+    new_x = msg.pose.pose.position.x
+    new_y = msg.pose.pose.position.y
+    new_theta = Quad2Euler(msg.pose.pose.orientation)[2]
 
-    if (math.sqrt((prv.x - msg_x)**2 + (prv.y - msg_y)**2) < gamma):
-        rel.x = msg_x - ref.x
-        rel.y = msg_y - ref.y
+    if (math.sqrt((new_x - prev.x) ** 2 + (new_y - prev.y) ** 2) < gamma):
+        rel.x = new_x - ref.x
+        rel.y = new_y - ref.y
 
-    if (abs(msg_theta - prv.theta) < math.pi/150):
-        rel.theta = msg_theta - ref.theta
+    if (abs(new_theta - prev.theta) < math.pi/150):
+        rel.theta = new_theta - ref.theta
 
-    prv.x = msg_x
-    prv.y = msg_y
-    prv.theta = msg_theta
+    prev.x = new_x
+    prev.y = new_y
+    prev.theta = new_theta
 
 
 def callback_locomotion(msg, vel):
@@ -82,8 +82,15 @@ def callback_artag_marker(msg, args):
         world.y = msg.transform.translation.y - rel.y
 
 
-def handle_taring_the_balance(msg, ref):
-    msg.referance
+def handle_taring_the_balance(msg, args):
+    rospy.loginfo('#handle_taring_the_balance responding...')
+    relative, world = args
+    world.x = msg.referance.x - relative.x
+    world.y = msg.referance.y - relative.y
+    world.theta = msg.referance.theta - relative.theta
+    rospy.loginfo('rover now at \{x:%4.2f, y:%4.2f, theta:%4.2f\}' % (
+        msg.referance.x, msg.referance.y, msg.referance.theta))
+    return SetReferencePoseResponse(True)
 
 
 if __name__ == '__main__':
@@ -91,10 +98,10 @@ if __name__ == '__main__':
 
     vel = Twist()
     temp_pose = Pose2D()
-    rover_pose = Pose2D()  # msg
-    relative_pose = Pose2D()  # rel
-    world_pose = Pose2D()  # world
-    reference_pose = Pose2D()  # tar
+    rover_pose = Pose2D()
+    relative_pose = Pose2D()
+    reference_pose = Pose2D()
+    world_frame_pose = Pose2D()
 
     # rufat's node
     rospy.Subscriber('odometry/filtered', Odometry,
@@ -102,9 +109,9 @@ if __name__ == '__main__':
 
     # Arda's node
     rospy.Subscriber('/base_link_transform', TransformStamped,
-                     callback_artag_marker, (relative_pose, world_pose, vel))
+                     callback_artag_marker, (relative_pose, world_frame_pose, vel))
     rospy.Subscriber('/wheel_odom', TwistStamped, callback_locomotion, vel)
-    rospy.Service('taring_the_balance', SetReferancePose,
+    rospy.Service('taring_the_balance', SetReferencePose,
                   handle_taring_the_balance)
     rospy.loginfo_once('#taring_the_balance running @rover_localization')
 
@@ -120,9 +127,8 @@ if __name__ == '__main__':
     rate = rospy.Rate(50)
 
     while not rospy.is_shutdown():
-        # init + A_0 + (R_cur - R_0)
-        rover_pose.x = world_pose.x + relative_pose.x
-        rover_pose.y = world_pose.y + relative_pose.y
+        rover_pose.x = world_frame_pose.x + relative_pose.x
+        rover_pose.y = world_frame_pose.y + relative_pose.y
         rover_pose.theta = relative_pose.theta
 
         pub.publish(rover_pose)
