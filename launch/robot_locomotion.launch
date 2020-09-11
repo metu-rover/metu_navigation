@@ -1,6 +1,6 @@
 <launch>
     <group ns='leo_locomotion'>
-        <node name='map_design' pkg='leo_rover_localization' type='MapDesign.py' args="$(find leo_rover_localization)/resources/leo_map.npz" />
+        <node name='map_design' pkg='leo_rover_localization' type='MapDesign.py' args="resources/leo_map" />
 
         <node name="path_planner" pkg="leo_rover_localization" type="path_planner_service.py" args="$(find leo_rover_localization)/resources/leo_map.npz" output='screen' />
 
