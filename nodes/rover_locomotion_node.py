@@ -37,7 +37,7 @@ def update_position(msg, rover):
 
 
 def handle_set_destination(msg):
-    global rover, distance, destination
+    global rover, distance, destination, srv4GetPath
     req4GetPath = GetPathFromMapRequest(rover, msg.destination)
     res4GetPath = srv4GetPath(req4GetPath)
 
@@ -63,7 +63,7 @@ def handle_enable_motors(msg):
 
 
 def handle_base_link_transform(msg):
-    global any_markers, edge_markers, marker, destination, rover
+    global any_markers, edge_markers, marker, destination, rover, srv4GetPath
     request = GetPathFromMapRequest(rover, destination)
     response = srv4GetPath(request)
     any_markers = False
