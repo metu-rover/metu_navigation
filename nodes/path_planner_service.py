@@ -132,7 +132,8 @@ class Path():
                     can_draw = False
                     break
         if can_draw == True:
-            path = [[pairs[0], pairs[1], mathobs1.lenghtOfLines(
+            path = [[((pairs[0][0] - shift_point[0]) / map1.multi, (pairs[0][1] - shift_point[1]) / - map1.multi),
+            ((pairs[1][0] - shift_point[0]) / map1.multi, (pairs[1][1] - shift_point[1]) / - map1.multi), mathobs1.lenghtOfLines(
                 pairs, roughness=startpoint.Roughness)]]
             return path, path[0][2]
         return [], 0  # if all edges will collide with the edge of points there is an object between points
@@ -213,7 +214,6 @@ class Dijkstra():
             second = ((path_points[index+1][0]-values[0])/multi,
                       (path_points[index+1][1]-values[1])/multi*-1)
 
-            rospy.logerr('append (x:%2.1f, y:%2.1f)(x:%2.1f, y:%2.1f)' % (first[0], first[1], second[0], second[1]))
             path.append((first, second))
 
         return path, sum_cost
@@ -293,7 +293,6 @@ def handle_get_path_from_map(msg):
 
         path.path, sum_cost = path.DijkstrasAlgorithm(startPoint, endPoint, path.Ways)
 
-        rospy.logerr('inside')
         if sum_cost != -1:
             index = 0
             current_path = [msg.target]
@@ -306,12 +305,10 @@ def handle_get_path_from_map(msg):
                 rospy.loginfo('(x:%3.2f y:%3.2f)' %
                             (vertex.x, vertex.y))
 
-            rospy.logerr('True')
             return GetPathFromMapResponse(current_path, True)
         else:
             return GetPathFromMapResponse([], False)
     else:
-        rospy.logerr('False')
         return GetPathFromMapResponse([], False)
 
 

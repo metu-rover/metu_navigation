@@ -64,24 +64,27 @@ def handle_enable_motors(msg):
 
 
 def handle_base_link_transform(msg):
-    global any_markers, edge_markers, edge_marker, destination, rover, srv4GetPath
-    rospy.loginfo('destination: x:%2.1f y:%2.1f' % (destination.x, destination.y))
-    request = GetPathFromMapRequest(rover, destination)
-    response = srv4GetPath(request)
-    any_markers = False
+    global is_enable
+    if is_enable:
+        global any_markers, edge_markers, edge_marker, destination, rover, srv4GetPath
+        request = GetPathFromMapRequest(rover, destination)
+        response = srv4GetPath(request)
+        any_markers = False
 
-    if response.is_path_updated:
-        global to_disable, distance
-        to_disable = False
-        distance = 0
+        if response.is_path_updated:
+            global to_disable, distance
+            to_disable = False
+            distance = 0
 
-    try:
-        edge_markers.remove(edge_marker)
-        rospy.loginfo('marker %d detected, position updated' % (int(edge_marker.theta)))
-    except ValueError as e:
-        rospy.logerr('marker %d cannot find in markers' % (int(edge_marker.theta)))
+        try:
+            edge_markers.remove(edge_marker)
+            rospy.loginfo('marker %d detected, position updated' % (int(edge_marker.theta)))
+        except ValueError as e:
+            rospy.logerr('marker %d cannot find in markers' % (int(edge_marker.theta)))
 
-    return response.is_path_updated
+        return response.is_path_updated
+    else:
+        return False
 
 
 if __name__ == '__main__':
@@ -168,13 +171,13 @@ if __name__ == '__main__':
                         except ValueError as e:
                             rospy.logerr('marker %d cannot find in edge_markers' % (int(edge_marker.theta)))  
                     elif abs(alpha - rover.theta) < epsilon:
-                        K_c = K_p / 6
+                        K_c = K_p / 5
                         rospy.loginfo_throttle(1,'marker %d has a margin of 15 deg. at most' % (int(edge_marker.theta)))
                     elif abs(alpha - rover.theta) < 2 * epsilon:
-                        K_c = K_p / 5
+                        K_c = K_p / 3
                         rospy.loginfo_throttle(1,'marker %d has a margin of 30 deg. at most'% (int(edge_marker.theta)))
                     elif abs(alpha - rover.theta) < 3 * epsilon:
-                        K_c = K_p / 3
+                        K_c = K_p / 2
                         rospy.loginfo_throttle(1,'marker %d has a margin of 45 deg. at most'% (int(edge_marker.theta)))
                     else:
                         K_c = K_p
