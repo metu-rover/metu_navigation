@@ -165,7 +165,7 @@ if __name__ == '__main__':
                             edge_markers.remove(marker)
                             rospy.loginfo('failed to detect, position did not changed')
                         except ValueError as e:
-                            rospy.logerr('marker cannot find in markers')
+                            rospy.logerr('marker cannot find in edge_markers')
                     elif abs(alpha - rover.theta) < 2 * epsilon:
                         K_c = K_p / 7
                         rospy.loginfo_throttle(1,'marker has a margin of 30 deg. at most')

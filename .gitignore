@@ -1,3 +1,4 @@
 .vscode
 nodes/*.pyc
 nodes/__pycache__
+resources/leo_map.npz
