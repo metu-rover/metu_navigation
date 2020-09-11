@@ -212,6 +212,8 @@ class Dijkstra():
             first = ((points[0]-values[0])/multi, (points[1]-values[1])/multi)
             second = ((path_points[index+1][0]-values[0])/multi,
                       (path_points[index+1][1]-values[1])/multi*-1)
+
+            rospy.logerr('append (x:%2.1f, y:%2.1f)(x:%2.1f, y:%2.1f)' % (first[0], first[1], second[0], second[1]))
             path.append((first, second))
 
         return path, sum_cost
@@ -291,7 +293,7 @@ def handle_get_path_from_map(msg):
 
         path.path, sum_cost = path.DijkstrasAlgorithm(startPoint, endPoint, path.Ways)
 
-
+        rospy.logerr('inside')
         if sum_cost != -1:
             index = 0
             current_path = [msg.target]
@@ -304,8 +306,12 @@ def handle_get_path_from_map(msg):
                 rospy.loginfo('(x:%3.2f y:%3.2f)' %
                             (vertex.x, vertex.y))
 
+            rospy.logerr('True')
             return GetPathFromMapResponse(current_path, True)
+        else:
+            return GetPathFromMapResponse([], False)
     else:
+        rospy.logerr('False')
         return GetPathFromMapResponse([], False)
 
 

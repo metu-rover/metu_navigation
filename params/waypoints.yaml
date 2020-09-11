@@ -5,6 +5,12 @@
 #     theta: <float>
 # }
 
+waypoint_00: {
+    x: 0.0,
+    y: 0.0,
+    theta: 0.0
+}
+
 waypoint_SC: {
     x: 14.77,
     y: -18.08,

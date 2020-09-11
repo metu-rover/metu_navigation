@@ -155,7 +155,7 @@ class Obstacles():
         if not self.Roughness == "Infinity":
             self.Coords = self.ShiftCoords(number=5)
         else:
-            self.Coords = self.ShiftCoords(number=20)
+            self.Coords = self.ShiftCoords(number=10)
 
 
 class Ways():

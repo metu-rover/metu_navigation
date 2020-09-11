@@ -76,7 +76,7 @@ def callback_locomotion(msg, vel):
 
 def callback_artag_marker(msg, args):
     rel, world, vel = args
-
+    rospy.loginfo('[rover_localization] ')
     if abs(vel.linear.x) < epsilon and abs(vel.angular.z) < 2 * epsilon:
         world.x = msg.transform.translation.x - rel.x
         world.y = msg.transform.translation.y - rel.y
