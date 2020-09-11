@@ -75,9 +75,9 @@ def handle_base_link_transform(msg):
 
     try:
         edge_markers.remove(marker)
-        rospy.loginfo('marker detected, position updated')
+        rospy.loginfo('marker %d detected, position updated' % (int(marker.theta)))
     except ValueError as e:
-        rospy.logerr('marker cannot find in markers')
+        rospy.logerr('marker %d cannot find in markers' % (int(marker.theta)))
 
     return response.is_path_updated
 
@@ -123,7 +123,7 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(100)  # 10 Hz
 
-    markers = [Pose2D(float(marker[1]['x']), float(marker[1]['y']), 0)
+    markers = [Pose2D(float(marker[1]['x']), float(marker[1]['y']), float(marker[0][-2:]) if marker[0][-2].isdigit() else float(marker[0][-1]))
                for marker in rospy.get_param('tf_static').items()]
     edge_markers = []
 
@@ -153,28 +153,27 @@ if __name__ == '__main__':
                 distance = distance_between(res4NextVertex.next_vertex, rover)
 
                 if any_markers:
-                    rospy.loginfo_throttle(0.5, 'in if any_markers')
                     dot_product = 0
                     alpha = math.atan2(marker.y - rover.y, marker.x - rover.x)
 
                     
                     if abs(alpha - rover.theta) < epsilon:
-                        rospy.loginfo('marker has a margin of 15 deg. at most')
+                        rospy.loginfo('marker %d has a margin of 15 deg. at most' % (int(marker.theta)))
                         any_markers = False
                         try:
                             edge_markers.remove(marker)
-                            rospy.loginfo('failed to detect, position did not changed')
+                            rospy.loginfo('failed to detect marker %d, position did not changed'% (int(marker.theta)))
                         except ValueError as e:
-                            rospy.logerr('marker cannot find in edge_markers')
+                            rospy.logerr('marker %d cannot find in edge_markers' % (int(marker.theta)))
                     elif abs(alpha - rover.theta) < 2 * epsilon:
                         K_c = K_p / 7
-                        rospy.loginfo_throttle(1,'marker has a margin of 30 deg. at most')
+                        rospy.loginfo_throttle(1,'marker %d has a margin of 30 deg. at most'% (int(marker.theta)))
                     elif abs(alpha - rover.theta) < 3 * epsilon:
                         K_c = K_p / 5
-                        rospy.loginfo_throttle(1,'marker has a margin of 45 deg. at most')
+                        rospy.loginfo_throttle(1,'marker %d has a margin of 45 deg. at most'% (int(marker.theta)))
                     else:
                         K_c = K_p / 3
-                        rospy.loginfo_throttle(1,'marker has a margin of 90 deg. at most')
+                        rospy.loginfo_throttle(1,'marker %d has a margin of 90 deg. at most' % (int(marker.theta)))
                 else:
                     # any_marker = True
                     marker_distances = [
@@ -184,7 +183,7 @@ if __name__ == '__main__':
                     if marker_distances != [] and marker_distances[0][0] < epsilon_normal:
                         any_markers = True
                         marker = marker_distances[0][1]
-                        rospy.loginfo('enemy spotted!')
+                        rospy.loginfo('enemy %d spotted!' % (int(marker.theta)))
 
                     alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
                                        res4NextVertex.next_vertex.x - rover.x)
