@@ -327,7 +327,6 @@ if __name__ == '__main__':
     rospy.init_node('map_design', anonymous=True)
 
     if (len(rospy.myargv()) == 1):
-        rospy.logfatal('usage: rosrun leo_rover_localization MapDesign.py <path_to_npz_map>')
+        rospy.logfatal_once('usage: rosrun leo_rover_localization MapDesign.py <path_to_npz_map_without_ending>')
     else:
-        rospy.loginfo(rospy.myargv()[1])
         main(rospy.myargv()[1])
