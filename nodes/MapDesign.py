@@ -324,4 +324,10 @@ def main(path_to_map):
 
 
 if __name__ == '__main__':
-    main('../resources/leo_map')
+    rospy.init_node('map_design', anonymous=True)
+
+    if (len(rospy.myargv()) == 1):
+        rospy.logfatal('usage: rosrun leo_rover_localization MapDesign.py <path_to_npz_map>')
+    else:
+        rospy.loginfo(rospy.myargv()[1])
+        main(rospy.myargv()[1])

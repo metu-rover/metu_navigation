@@ -1,0 +1,3 @@
+<launch>
+        <node name='map_design' pkg='leo_rover_localization' type='MapDesign.py' args="$(find leo_rover_localization)/resources/leo_map" />
+</launch>
