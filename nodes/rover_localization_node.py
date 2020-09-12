@@ -77,7 +77,7 @@ def callback_locomotion(msg, vel):
 def callback_artag_marker(msg, args):
     rel, world, vel = args
     if abs(vel.linear.x) < epsilon and abs(vel.angular.z) < 2 * epsilon:
-        rospy.loginfo('[rover_localization] updated position via ar_markers')
+        rospy.loginfo('[rover_localization] updated position via marker %s' % (msg.header.frame_id))
         world.x = msg.transform.translation.x - rel.x
         world.y = msg.transform.translation.y - rel.y
 
@@ -87,8 +87,8 @@ def handle_taring_the_balance(msg):
     rospy.loginfo('#handle_taring_the_balance responding...')
     world_frame_pose.x = msg.reference.x - relative_pose.x
     world_frame_pose.y = msg.reference.y - relative_pose.y
-    rospy.loginfo('rover now at \{x:%4.2f, y:%4.2f, theta:%4.2f\}' % (
-        msg.reference.x, msg.reference.y, msg.reference.theta))
+    rospy.loginfo('rover now at x:%4.2f, y:%4.2f' % (
+        msg.reference.x, msg.reference.y))
     return SetReferencePoseResponse(True)
 
 
