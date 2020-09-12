@@ -151,6 +151,7 @@ if __name__ == '__main__':
                     distance = res4NextVertex.distance
                     vertex = res4NextVertex.next_vertex
                     to_disable = res4NextVertex.at_boundary
+                    rospy.loginfo('next_vertex x:%2.1f y:%2.1f at_boundary:%r' % (vertex.x, vertex.y, to_disable))
 
                     edge_markers = [marker for marker in markers if abs(
                         normal_length(rover, vertex, marker)) < epsilon_normal and not distance_between(marker, rover) < epsilon_normal]
