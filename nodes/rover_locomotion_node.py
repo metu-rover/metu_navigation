@@ -63,28 +63,23 @@ def handle_enable_motors(msg):
         return "Self-control is disabled. You are boss now!"
 
 
-def handle_base_link_transform(msg):
+def callback_base_link_transform(msg):
     global is_enable
     if is_enable:
         global any_markers, edge_markers, edge_marker, destination, rover, srv4GetPath
-        request = GetPathFromMapRequest(rover, destination)
-        response = srv4GetPath(request)
-        any_markers = False
-
-        if response.is_path_updated:
-            global to_disable, distance
-            to_disable = False
-            distance = 0
-
         try:
             edge_markers.remove(edge_marker)
-            rospy.loginfo('marker %d detected, position updated' % (int(edge_marker.theta)))
-        except ValueError as e:
-            rospy.logerr('marker %d cannot find in markers' % (int(edge_marker.theta)))
+            rospy.logwarn('marker %d detected, position updated' % (int(edge_marker.theta)))
+            request = GetPathFromMapRequest(rover, destination)
+            response = srv4GetPath(request)
+            any_markers = False
 
-        return response.is_path_updated
-    else:
-        return False
+            if response.is_path_updated:
+                global to_disable, distance
+                to_disable = False
+                distance = 0
+        except ValueError as e:
+            pass
 
 
 if __name__ == '__main__':
@@ -124,7 +119,7 @@ if __name__ == '__main__':
     rospy.Subscriber('/leo_localization/ground_truth_to_pose2D',
                      Pose2D, update_position, rover)
 
-    rospy.Subscriber('/base_link_transform', TransformStamped,handle_base_link_transform)
+    rospy.Subscriber('/base_link_transform', TransformStamped,callback_base_link_transform)
 
     rate = rospy.Rate(100)  # 10 Hz
 
@@ -168,21 +163,19 @@ if __name__ == '__main__':
                         any_markers = False
                         try:
                             edge_markers.remove(edge_marker)
-                            rospy.loginfo('failed to detect marker %d, position did not changed'% (int(edge_marker.theta)))
+                            rospy.logwarn('failed to detect marker %d, position did not changed'% (int(edge_marker.theta)))
                         except ValueError as e:
-                            rospy.logerr('marker %d cannot find in edge_markers' % (int(edge_marker.theta)))  
+                            pass
                     elif abs(alpha - rover.theta) < epsilon:
-                        K_c = K_p / 5
-                        rospy.loginfo_throttle(1,'marker %d has a margin of 15 deg. at most' % (int(edge_marker.theta)))
+                        K_c = K_p / 4
                     elif abs(alpha - rover.theta) < 2 * epsilon:
                         K_c = K_p / 3
-                        rospy.loginfo_throttle(1,'marker %d has a margin of 30 deg. at most'% (int(edge_marker.theta)))
                     elif abs(alpha - rover.theta) < 3 * epsilon:
                         K_c = K_p / 2
-                        rospy.loginfo_throttle(1,'marker %d has a margin of 45 deg. at most'% (int(edge_marker.theta)))
                     else:
-                        K_c = K_p
-                        rospy.loginfo_throttle(1,'marker %d has a margin of 90 deg. at most' % (int(edge_marker.theta)))
+                        K_c = K_p / 1
+                    
+                    rospy.loginfo_throttle(1,'marker %d has a margin of %3.2f deg. at most' % (int(edge_marker.theta), abs(alpha - rover.theta) * 180 / math.pi))
                 else:
                     # any_marker = True
                     marker_distances = [
@@ -193,7 +186,7 @@ if __name__ == '__main__':
                         any_markers = True
                         timer = rospy.get_time()
                         edge_marker = marker_distances[0][1]
-                        rospy.loginfo('enemy %d spotted!' % (int(edge_marker.theta)))
+                        rospy.logwarn('marker %d spotted! away from %3.2f m.' % (int(edge_marker.theta),marker_distances[0][0]))
 
                     alpha = math.atan2(res4NextVertex.next_vertex.y - rover.y,
                                        res4NextVertex.next_vertex.x - rover.x)
