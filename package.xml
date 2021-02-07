@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>leo_rover_localization</name>
+  <name>metu_navigation</name>
   <version>0.0.0</version>
-  <description>The Localization Package</description>
+  <description>The Navigation Package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
