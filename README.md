@@ -1,11 +1,11 @@
 # Metu-navigation
 
 ```shell
-rosrun metu_navigation run.sh
+roslaunch leo_gazebo leo_marsiyard.launch
 ```
 
 ```shell
-roslaunch leo_gazebo leo_marsiyard.launch
+rosrun metu_navigation run.sh
 ```
 
 ```shell
