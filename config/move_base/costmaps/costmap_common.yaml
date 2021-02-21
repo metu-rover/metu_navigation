@@ -4,7 +4,7 @@ footprint: [[0.21, 0.22], [0.21, -0.22], [-0.21, -0.22], [-0.21, 0.22]]
 static_layer:
   unknown_cost_value: -1
   lethal_cost_threshold: 100
-  map_topic: map
+  map_topic: /rtabmap/grid_map
   first_map_only: false
   subscribe_to_updates: false
   track_unknown_space: true
@@ -20,10 +20,10 @@ obstacle_layer:
   footprint_clearing_enabled: true
   combination_method: 1
 
-  observation_sources: point
+  # observation_sources: scan
 
-  point:
-    topic: /zed2/point_cloud/cloud_registered
+  scan:
+    topic: /rtabmap/cloud_map
     observation_persistance: 0.0
     expected_update_rate: 0.30
     data_type: PointCloud2

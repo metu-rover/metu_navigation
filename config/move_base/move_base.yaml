@@ -11,7 +11,7 @@ planner_frequency: 0.0
 max_planning_retries: 5
 
 # Planner plugins
-base_global_planner: navfn/NavfnROS #global_planner/GlobalPlanner
+# base_global_planner: global_planner/GlobalPlanner
 base_local_planner: base_local_planner/TrajectoryPlannerROS
 
 # Recovery behavior parameters

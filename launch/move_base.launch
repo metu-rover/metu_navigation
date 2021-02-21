@@ -5,7 +5,9 @@
   <node name="move_base"
         pkg="move_base"
         type="move_base"
-        clear_params="true">
+        clear_params="true"
+	output="screen">
+
     <rosparam command="load"
               file="$(find metu_navigation)/config/move_base/move_base.yaml"/>
 
