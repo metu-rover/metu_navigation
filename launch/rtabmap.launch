@@ -1,6 +1,7 @@
 <launch>
+  <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
+  <arg name="rtabmap_args" value="" />
   <arg name="rgb_topic" value="/zed2/left/image_rect_color" />
-  <arg name="localization" value="true" />
   <arg name="depth_topic" value="/zed2/depth/depth_registered" />
   <arg name="camera_info_topic" value="/zed2/depth/camera_info" />
   <arg name="odom_topic" value="/controllers/diff_drive/odom" />
@@ -10,5 +11,6 @@
   <arg name="approx_sync" value="true" />
   <arg name="rgbd_sync" value="true" />
   <arg name="localization" value="true" />
-  <include file="$(find rtabmap_ros)/launch/rtabmap.launch" />
+  </include>
 </launch>
+
