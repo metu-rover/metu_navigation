@@ -2,7 +2,7 @@
 
 ### GAZEBO-SIM
 ```shell
-roslaunch leo_gazebo leo_marsyard.launch
+roslaunch metu_gazebo metu_maze.launch
 ```
 
 ### MAPPING
