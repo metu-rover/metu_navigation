@@ -17,5 +17,5 @@ roslaunch metu_navigation move_base.launch
 
 ### RVIZ-SIM
 ```shell
-roslaunch leo_viz rviz.launch
+roslaunch metu_gazebo rviz.launch
 ```
