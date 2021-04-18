@@ -12,7 +12,7 @@ roslaunch metu_navigation rtabmap.launch
 
 ### NAVIGATION-STACK
 ```shell
-rsolaunch metu_navigation move_base.launch
+roslaunch metu_navigation move_base.launch
 ```
 
 ### RVIZ-SIM
