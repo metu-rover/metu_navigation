@@ -20,7 +20,7 @@ obstacle_layer:
   footprint_clearing_enabled: true
   combination_method: 1
 
-  # observation_sources: scan
+#  observation_sources: scan
 
   scan:
     topic: /rtabmap/cloud_map
@@ -35,5 +35,5 @@ obstacle_layer:
 
 # http://wiki.ros.org/costmap_2d/hydro/inflation
 inflation_layer:
-  inflation_radius: 0.4
-  cost_scaling_factor: 30.0
+  inflation_radius: 0.3
+  cost_scaling_factor: 5.0
