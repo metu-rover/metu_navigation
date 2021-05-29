@@ -13,7 +13,7 @@
     <param name="gps_used" value="false" />
     <param name="vo_used" value="false" />
 
-    <remap from="odom" to="/wheel_odom" />
+    <remap from="odom" to="/zed2/odom" />
     <remap from="imu_data" to="/zed2/imu/data" />
     <!--remap from="gps" to="/odom" /-->
     <!--remap from="vo" to="/odom" /--> 
