@@ -28,6 +28,8 @@
               file="$(find metu_navigation)/config/move_base/planners/local_planner.yaml"/>
     <rosparam command="load"
               file="$(find metu_navigation)/config/move_base/planners/global_planner.yaml"/>
+ 
   </node>
+
   
 </launch>
