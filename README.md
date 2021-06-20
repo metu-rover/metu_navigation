@@ -5,6 +5,11 @@
 roslaunch metu_gazebo metu_maze.launch
 ```
 
+### ODOMETRY
+```shell
+roslaunch metu_navigation odometry.launch
+```
+
 ### MAPPING
 ```shell
 roslaunch metu_navigation rtabmap.launch
