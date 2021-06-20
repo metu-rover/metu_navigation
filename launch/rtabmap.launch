@@ -4,7 +4,8 @@
   <arg name="rgb_topic" value="/zed2/left/image_rect_color" />
   <arg name="depth_topic" value="/zed2/depth/depth_registered" />
   <arg name="camera_info_topic" value="/zed2/depth/camera_info" />
-  <arg name="visual_odometry" value="true" />
+  <arg name="odom_topic" value="/zed2/odom" />
+  <arg name="visual_odometry" value="false" />
   <arg name="frame_id" value="base_link" />
   <arg name="odom_frame_id" value="odom" />
   <arg name="approx_sync" value="false" />
