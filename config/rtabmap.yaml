@@ -4,7 +4,7 @@ depth_topic: /zed2/depth/depth_registered
 camera_info_topic: /zed2/depth/camera_info
 odom_topic: /controllers/diff_drive/odom
 visual_odometry: false 
-frame_id: base_footprint
+frame_id: base_link #base_footprint
 odom_frame_id: odom 
 approx_sync: true 
 rgbd_sync: true
