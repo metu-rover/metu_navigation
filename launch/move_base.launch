@@ -1,5 +1,5 @@
 <launch>
-  <!--remap from="odom" to="odometry/filtered"/-->
+  <remap from="odom" to="/rtabmap/odom"/>
   <!--remap from="cmd_vel" to="nav_vel"/-->
   
   <node name="move_base"
@@ -28,6 +28,8 @@
               file="$(find metu_navigation)/config/move_base/planners/local_planner.yaml"/>
     <rosparam command="load"
               file="$(find metu_navigation)/config/move_base/planners/global_planner.yaml"/>
+ 
   </node>
+
   
 </launch>
