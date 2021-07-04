@@ -4,63 +4,69 @@
 #     y: <float>,
 #     theta: <float>
 # }
+waypoints:
+    waypoint_00: {
+        x: 0.0,
+        y: 0.0,
+        theta: 0.0
+    }
+    
+    waypoint_SC: {
+        x: 14.77,
+        y: -18.08,
+        theta: 0.0
+    }
+        
+    waypoint_M1: {
+        x: 5.68,
+        y: 0,
+        theta: 0.0
+    }
 
-waypoint_00: {
-    x: 0.0,
-    y: 0.0,
-    theta: 0.0
-}
+    waypoint_M3: {
+        x: 20.39,
+        y: -4.11,
+        theta: 0.0
+    }
 
-waypoint_SC: {
-    x: 14.77,
-    y: -18.08,
-    theta: 0.0
-}
+    waypoint_01: {
+        x: 12.19,
+        y: 8.73,
+        theta: 0.0
+    }
 
-waypoint_M1: {
-    x: 5.68,
-    y: 0,
-    theta: 0.0
-}
+    waypoint_02: {
+        x: 25.04,
+        y: 4.36,
+        theta: 0.0
+    }
 
-waypoint_M3: {
-    x: 20.39,
-    y: -4.11,
-    theta: 0.0
-}
+    waypoint_03: {
+        x: 28.62,
+        y: -6.17,
+        theta: 0.0
+    }
 
-waypoint_01: {
-    x: 12.19,
-    y: 8.73,
-    theta: 0.0
-}
+    waypoint_04: {
+        x: 11.63,
+        y: -16.85,
+        theta: 0.0
+    }
 
-waypoint_02: {
-    x: 25.04,
-    y: 4.36,
-    theta: 0.0
-}
+    waypoint_5A: {
+        x: 7.64,
+        y: -5.55,
+        theta: 0.0
+    }
 
-waypoint_03: {
-    x: 28.62,
-    y: -6.17,
-    theta: 0.0
-}
+    waypoint_5B: {
+        x: 27.48,
+        y: -13.65,
+        theta: 0.0
+    }
 
-waypoint_04: {
-    x: 11.63,
-    y: -16.85,
-    theta: 0.0
-}
-
-waypoint_5A: {
-    x: 7.64,
-    y: -5.55,
-    theta: 0.0
-}
-
-waypoint_5B: {
-    x: 27.48,
-    y: -13.65,
-    theta: 0.0
-}
+nextpoints:
+    artag_0: "waypoint_5B"
+    artag_1: "waypoint_5A"
+    artag_2: "waypoint_04"
+    artag_3: "waypoint_02"
