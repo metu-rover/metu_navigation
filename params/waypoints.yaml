@@ -65,8 +65,19 @@ waypoints:
         theta: 0.0
     }
 
-nextpoints:
-    artag_0: "waypoint_5B"
-    artag_1: "waypoint_5A"
-    artag_2: "waypoint_04"
-    artag_3: "waypoint_02"
+actions:
+    artags:
+        artag_1: ["waypoint_01"]
+        artag_2: ["waypoint_02"]
+        artag_3: ["waypoint_03"]
+        artag_4: ["waypoint_04"]
+
+
+remote_path:
+    start      : "waypoint_01"
+    waypoint_01: "waypoint_02"
+    waypoint_02: "waypoint_03"
+    waypoint_03: "waypoint_04"
+    waypoint_04: "waypoint_01"
+    waypoint_5A: "waypoint_5B"
+    waypoint_5B: "waypoint_5A"
