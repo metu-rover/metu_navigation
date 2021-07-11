@@ -1,5 +1,5 @@
 <launch>
-  <!--remap from="odom" to="odometry/filtered"/-->
+  <remap from="odom" to="/rtabmap/odom"/>
   <!--remap from="cmd_vel" to="nav_vel"/-->
   
   <node name="move_base"
@@ -30,10 +30,6 @@
               file="$(find metu_navigation)/config/move_base/planners/global_planner.yaml"/>
  
   </node>
-<node
-    name="tf_footprint_base"
-    pkg="tf"
-    type="static_transform_publisher"
-    args="0 0 0 0 0 0 base_link base_footprint 40" />
+
   
 </launch>

@@ -14,9 +14,12 @@ catkin_make
 sourcd ~/caktin_ws/devel/setup.bash
 ```
 
-## Execution
+### ODOMETRY
+```shell
+roslaunch metu_navigation odometry.launch
+```
 
-Gazebo Sim:
+### MAPPING
 ```shell
 roslaunch metu_gazebo metu_maze.launch
 ```
