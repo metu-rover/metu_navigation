@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+    <include file="$(find leo_rover_image_saver)/launch/image_saver.launch" />
+  <include file="$(find metu_navigation)/launch/rtabmap.launch" />
+  <include file="$(find metu_navigation)/launch/move_base.launch" />
+  <include file="$(find metu_artag)/launch/ar_tag_detection.launch" />
+  <include file="$(find metu_navigation)/launch/path_planner.launch" />
+  <include file="$(find metu_navigation)/launch/odometry.launch" />
+</launch>
