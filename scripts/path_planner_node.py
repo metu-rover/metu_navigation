@@ -38,8 +38,8 @@ def move_base_send_goal(waypoint_name):
     goal = MoveBaseGoal()
     quaternion = quaternion_from_euler(0, 0, theta)
     goal.target_pose.header.frame_id = 'map'
-    goal.target.pose.header.stamp = rospy.Time.now()
-    goal.target.pose.header.seq = seq
+    goal.target_pose.header.stamp = rospy.Time.now()
+    goal.target_pose.header.seq = seq
     goal.target_pose.pose.position.x = x
     goal.target_pose.pose.position.y = y
     goal.target_pose.pose.orientation.x = quaternion[0]
