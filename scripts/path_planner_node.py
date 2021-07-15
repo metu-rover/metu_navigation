@@ -113,16 +113,16 @@ def update_state_by_ar_marker(ar_marker_detection):
             detections.pop(0)
         if len(detections) > ACTIONABLE_QUANTITY:
             pub.publish(Pose2D(*np.mean([p for p,_ in detections], axis=0)))
-            rospy.loginfo('Pose 2D x:{} y:{} theta:{}'.format(*np.mean([p for p,_ in detections], axis=0)))
+            rospy.logdebug('Pose 2D x:{} y:{} theta:{}'.format(*np.mean([p for p,_ in detections], axis=0)))
 
 
-        if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
-            curr_goal = next_goal
-            next_goal = next_points[curr_goal]
-            print(marker_number, ar_marker_waypoints[marker_number])
+            if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
+                curr_goal = next_goal
+                next_goal = next_points[curr_goal]
+                print(marker_number, ar_marker_waypoints[marker_number])
 
-            if state == AUTOMATED:
-                move_base_send_goal(curr_goal)
+                if state == AUTOMATED:
+                    move_base_send_goal(curr_goal)
 
 
 def callback_marker_detected(msg):
