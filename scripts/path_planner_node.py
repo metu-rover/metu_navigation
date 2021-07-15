@@ -114,12 +114,9 @@ def update_state_by_ar_marker(ar_marker_detection):
         if len(detections) > ACTIONABLE_QUANTITY:
             pub.publish(Pose2D(*np.mean([p for p,_ in detections], axis=0)))
             rospy.loginfo('Pose 2D x:{} y:{} theta:{}'.format(*np.mean([p for p,_ in detections], axis=0)))
-            base_link_truth = tf_buffer.lookup_transform('base_link', 'odom', rospy.Time(), rospy.Duration(1.0))
-            base_link_translation = list_from_translation(base_link_truth.transform.translation)
-            rospy.loginfo('BaseLink x:{} y:{}'.format(base_link_translation[0], base_link_translation[1]))
 
 
-        if curr_goal in ar_marker_waypoints[marker_number]:
+        if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
             curr_goal = next_goal
             next_goal = next_points[curr_goal]
 
@@ -170,12 +167,6 @@ def callback_marker_detected(msg):
         total_base_x /= (len(detected_marker_numbers) - far_marker_count)
         total_base_y /= (len(detected_marker_numbers) - far_marker_count)
         total_base_t /= (len(detected_marker_numbers) - far_marker_count)
-
-        #pub.publish(Pose2D(total_base_x, total_base_y, total_base_t))
-        #rospy.loginfo('Pose 2D x:{} y:{} theta:{}'.format(total_base_x, total_base_y, total_base_t))
-        #base_link_truth = tf_buffer.lookup_transform('base_link', 'odom', rospy.Time(), rospy.Duration(1.0))
-        #base_link_translation = list_from_translation(base_link_truth.transform.translation)
-        #rospy.loginfo('BaseLink x:{} y:{}'.format(base_link_translation[0], base_link_translation[1]))
     
 
 def get_param(key):
