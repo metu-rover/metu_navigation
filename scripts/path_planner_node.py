@@ -25,7 +25,7 @@ PAUSE = 2
 RESUME = 3
 STOP = 4
 
-state = AUTOMATED
+state = MANUAL
 
 client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 seq = 1
