@@ -66,11 +66,12 @@ waypoints:
     }
 
 actions:
-    artags:
-        artag_1: ["waypoint_01"]
-        artag_2: ["waypoint_02"]
-        artag_3: ["waypoint_03"]
-        artag_4: ["waypoint_04"]
+    ar_markers:
+        ar_marker_1: ["waypoint_01"]
+        ar_marker_2: ["waypoint_02"]
+        ar_marker_3: ["waypoint_03"]
+        ar_marker_4: ["waypoint_04", "waypoint_5A"]
+        ar_marker_8: ["waypoint_04", "waypoint_5A"]
 
 
 remote_path:
