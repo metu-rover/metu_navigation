@@ -211,7 +211,7 @@ if __name__ == '__main__':
     rospy.Subscriber('ar_pose_marker', AlvarMarkers, callback_marker_detected)
     pub = rospy.Publisher('base_link_position', Pose2D, queue_size=10)
     
-    #rospy.wait_for_message('start', Empty)
+    rospy.wait_for_message('start', Empty)
     rospy.loginfo("autonomous navigation started")
     
     rospy.Subscriber('next', Empty, callback_step, callback_args=+1)
