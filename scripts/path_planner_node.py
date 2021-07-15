@@ -119,6 +119,7 @@ def update_state_by_ar_marker(ar_marker_detection):
         if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
             curr_goal = next_goal
             next_goal = next_points[curr_goal]
+            print(marker_number)
 
             if state == AUTOMATED:
                 move_base_send_goal(curr_goal)
@@ -150,7 +151,7 @@ def callback_marker_detected(msg):
                     total_base_y += ar_tag_translation[1] - translation[1]
                     total_base_t += -euler_from_quaternion(quaternion)[2]
                     
-                    rospy.loginfo("updated position to x:{} y:{} z:{}".format(*(ar_tag_translation - translation)))
+                    rospy.loginfo_throttle(5, "updated position to x:{} y:{} z:{}".format(*(ar_tag_translation - translation)))
 
                     ar_marker_detections[marker_number].append((ar_tag_translation - translation, rospy.Time.now()))
 
