@@ -30,27 +30,33 @@ waypoints:
     }
 
     waypoint_01: {
-        x: 12.19,
-        y: 8.73,
-        theta: 0.0
+        x: 4.23,
+        y: 1.92,
+        theta: -0.83
     }
 
     waypoint_02: {
-        x: 25.04,
-        y: 4.36,
-        theta: 0.0
+        x: 12.8,
+        y: 0.93,
+        theta: -0.78
     }
 
     waypoint_03: {
-        x: 28.62,
-        y: -6.17,
-        theta: 0.0
+        x: 19.08,
+        y: -5.73,
+        theta: -0.78
     }
 
     waypoint_04: {
-        x: 11.63,
-        y: -16.85,
-        theta: 0.0
+        x: 14.00,
+        y: -10.9,
+        theta: -2.3
+    }
+
+    waypoint_05: {
+        x: 18.02,
+        y: -16.5,
+        theta: -0.78
     }
 
     waypoint_5A: {
@@ -68,10 +74,10 @@ waypoints:
 actions:
     ar_markers:
         ar_marker_1: ["waypoint_01"]
-        ar_marker_2: ["waypoint_02"]
-        ar_marker_3: ["waypoint_03"]
-        ar_marker_4: ["waypoint_04", "waypoint_5A"]
-        ar_marker_8: ["waypoint_04", "waypoint_5A"]
+        ar_marker_3: ["waypoint_02"]
+        ar_marker_10: ["waypoint_03"]
+        ar_marker_5: ["waypoint_04"]
+        ar_marker_8: ["waypoint_05"]
 
 
 remote_path:
@@ -79,6 +85,5 @@ remote_path:
     waypoint_01: "waypoint_02"
     waypoint_02: "waypoint_03"
     waypoint_03: "waypoint_04"
-    waypoint_04: "waypoint_01"
-    waypoint_5A: "waypoint_5B"
-    waypoint_5B: "waypoint_5A"
+    waypoint_04: "waypoint_05"
+    waypoint_05: "waypoint_04"
