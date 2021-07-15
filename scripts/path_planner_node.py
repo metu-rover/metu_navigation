@@ -144,6 +144,8 @@ def callback_marker_detected(msg):
                 
                 if np.sum(np.sqrt(np.square(translation))) < ACTIONABLE_DISTANCE:
                     # getting pre-defined positions for ar_marker_#
+                    if marker_number == 'ar_marker_5':
+                        print(np.sum(np.sqrt(np.square(translation))))
                     ar_tag_absolute = ar_marker_positions[marker_number]
                     ar_tag_translation = np.array(map(lambda key: float(ar_tag_absolute[key]), ('x','y','z')))
 
