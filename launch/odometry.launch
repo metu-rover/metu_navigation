@@ -20,4 +20,6 @@
     <remap from="vo" to="/rtabmap/odom"/>
 
   </node>
+
+  <node pkg="metu_artag" type="tf_base_link_broadcaster_node.py" name="tf_base_link_broadcaster_node" output="screen" />
 </launch>
