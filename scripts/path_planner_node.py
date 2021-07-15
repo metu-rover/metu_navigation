@@ -28,14 +28,18 @@ STOP = 4
 state = AUTOMATED
 
 client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-
+seq = 1
 
 def move_base_send_goal(waypoint_name):
+    global seq
     waypoint = waypoints[waypoint_name]
     x, y, theta = waypoint['x'], waypoint['y'], waypoint['theta']
     rospy.loginfo("next waypoint is %s at x:%2.1f y:%2.1f theta:%2.1f" % (waypoint_name, x, y, theta))
     goal = MoveBaseGoal()
     quaternion = quaternion_from_euler(0, 0, theta)
+    goal.target_pose.header.frame_id = 'map'
+    goal.target.pose.header.stamp = rospy.Time.now()
+    goal.target.pose.header.seq = seq
     goal.target_pose.pose.position.x = x
     goal.target_pose.pose.position.y = y
     goal.target_pose.pose.orientation.x = quaternion[0]
@@ -43,6 +47,7 @@ def move_base_send_goal(waypoint_name):
     goal.target_pose.pose.orientation.z = quaternion[2]
     goal.target_pose.pose.orientation.w = quaternion[3]
     client.send_goal(goal=goal)
+    seq += 1
 
 
 def move_base_cancel():
