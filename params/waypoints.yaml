@@ -30,30 +30,102 @@ waypoints:
     }
 
     waypoint_01: {
+        x: 2.12,
+        y: 2.00,
+        theta: 1.13
+    }
+
+    waypoint_02: {
         x: 4.23,
         y: 1.92,
         theta: -0.83
     }
 
-    waypoint_02: {
+    waypoint_013: {
+        x: 6.00,
+        y: 2.500,
+        theta: -0.31
+    }
+
+    waypoint_04: {
+        x: 8.00,
+        y: 2.50,
+        theta: -0.31
+    }
+
+    waypoint_05: {
+        x: 10.09,
+        y: 1.30,
+        theta: -0.31
+    }
+
+    waypoint_06: {
         x: 12.8,
         y: 0.93,
         theta: -0.78
     }
 
-    waypoint_03: {
+    waypoint_07: {
+        x: 14.8,
+        y: -1.8,
+        theta: -0.78
+    }
+
+    waypoint_08: {
+        x: 16.5,
+        y: -1.67,
+        theta: -1.21
+    }
+
+    waypoint_09: {
+        x: 17.57,
+        y: -3.08,
+        theta: -1.21
+    }
+
+    waypoint_010: {
+        x: 18.08,
+        y: -4.23,
+        theta: -1.23
+    }
+
+    waypoint_011: {
         x: 19.08,
         y: -5.73,
         theta: -0.78
     }
 
-    waypoint_04: {
+    waypoint_012: {
+        x: 17.11,
+        y: -8.02,
+        theta: -2.6 
+    }
+
+    waypoint_013: {
         x: 14.00,
         y: -10.9,
         theta: -2.3
     }
 
-    waypoint_05: {
+   waypoint_014: {
+        x: 14.00,
+        y: -11.9,
+        theta: 3
+    }
+
+   waypoint_015: {
+        x: 14.00,
+        y: -13.3,
+        theta: 0.78
+    }
+
+   waypoint_016: {
+        x: 16.00,
+        y: -14.3,
+        theta: -1.00
+    }
+
+    waypoint_017: {
         x: 18.02,
         y: -16.5,
         theta: -0.78
@@ -69,8 +141,43 @@ waypoints:
         x: 27.48,
         y: -13.65,
         theta: 0.0
+
+    }
+    waypoint_018: {
+        x: 12.19,
+        y: 8.73,
+        theta: 0.0
     }
 
+    waypoint_019: {
+        x: 25.04,
+        y: 4.36,
+        theta: 0.0
+    }
+
+    waypoint_020: {
+        x: 28.62,
+        y: -6.17,
+        theta: 0.0
+    }
+
+    waypoint_021: {
+        x: 11.63,
+        y: -16.85,
+        theta: 0.0
+    }
+
+    waypoint_022: {
+        x: 7.64,
+        y: -5.55,
+        theta: 0.0
+    }
+
+    waypoint_023: {
+        x: 27.48,
+        y: -13.65,
+        theta: 0.0
+    }
 actions:
     ar_markers:
         ar_marker_1: ["waypoint_01"]
@@ -86,4 +193,16 @@ remote_path:
     waypoint_02: "waypoint_03"
     waypoint_03: "waypoint_04"
     waypoint_04: "waypoint_05"
-    waypoint_05: "waypoint_04"
+    waypoint_05: "waypoint_06"
+    waypoint_06: "waypoint_07"
+    waypoint_07: "waypoint_08"
+    waypoint_08: "waypoint_09"
+    waypoint_09: "waypoint_010"
+    waypoint_010: "waypoint_011"
+    waypoint_011: "waypoint_012"
+    waypoint_012: "waypoint_013"
+    waypoint_013: "waypoint_014"
+    waypoint_014: "waypoint_015"
+    waypoint_015: "waypoint_016"
+    waypoint_016: "waypoint_017"
+    waypoint_017: "waypoint_016"
