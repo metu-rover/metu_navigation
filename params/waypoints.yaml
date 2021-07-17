@@ -107,19 +107,19 @@ waypoints:
         theta: -2.3
     }
 
-   waypoint_014: {
+    waypoint_014: {
         x: 14.00,
         y: -11.9,
         theta: 3
     }
 
-   waypoint_015: {
+    waypoint_015: {
         x: 14.00,
         y: -13.3,
         theta: 0.78
     }
 
-   waypoint_016: {
+    waypoint_016: {
         x: 16.00,
         y: -14.3,
         theta: -1.00
