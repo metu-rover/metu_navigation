@@ -41,7 +41,7 @@ waypoints:
         theta: -0.83
     }
 
-    waypoint_013: {
+    waypoint_03: {
         x: 6.00,
         y: 2.500,
         theta: -0.31
