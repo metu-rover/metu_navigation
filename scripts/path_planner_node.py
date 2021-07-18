@@ -215,17 +215,13 @@ if __name__ == '__main__':
     rospy.Subscriber('stop', Empty, callback_control, callback_args=STOP)
     rospy.Subscriber('waypoint', String, callback_set)
     
-    move_base_send_goal(curr_goal)
-
-    #rospy.spin()
-
     rate = rospy.Rate(0.2)
     pub_photo = rospy.Publisher('/save', String, queue_size=10)
 
     while not rospy.is_shutdown():
         now = rospy.Time.now()
         published = False
-        for marker_number, detections in ar_marker_detection.items():
+        for marker_number, detections in ar_marker_detections.items():
             while len(detections) != 0 and now - detections[0][1] > ACTIONABLE_DURATION:
                 detections.pop(0)
             if len(detections) > ACTIONABLE_QUANTITY:
@@ -240,7 +236,7 @@ if __name__ == '__main__':
                     if state == AUTOMATED:
                         move_base_send_goal(curr_goal)
         
-        if STATE != MANUEL:
+        if state != MANUAL:
             pub_photo.publish(String())
         
         if not published:
