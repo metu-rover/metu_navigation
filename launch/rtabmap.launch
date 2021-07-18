@@ -10,8 +10,8 @@
   <arg name="odom_frame_id" value="odom" />
   <arg name="approx_sync" value="false" />
   <arg name="rgbd_sync" value="true" />
-  <arg name="rtabmapviz" value="true" />
-  <arg name="publish_tf_odom" value="false"/>
+  <arg name="rtabmapviz" value="false" />
+  <arg name="publish_tf_odom" value="true"/>
   <arg name="vo_frame_id" value="odom"/>
   <arg name="imu_topic" value="/zed2/imu/data"/>
   </include>

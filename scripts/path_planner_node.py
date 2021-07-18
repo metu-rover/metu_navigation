@@ -217,13 +217,34 @@ if __name__ == '__main__':
     
     move_base_send_goal(curr_goal)
 
-    rospy.spin()
+    #rospy.spin()
 
     rate = rospy.Rate(0.2)
-    pub_photo = rospy.Publisher('/save', Empty, queue_size=10)
+    pub_photo = rospy.Publisher('/save', String, queue_size=10)
 
     while not rospy.is_shutdown():
+        now = rospy.Time.now()
+        published = False
+        for marker_number, detections in ar_marker_detection.items():
+            while len(detections) != 0 and now - detections[0][1] > ACTIONABLE_DURATION:
+                detections.pop(0)
+            if len(detections) > ACTIONABLE_QUANTITY:
+                pub.publish(Pose2D(*np.mean([p for p,_ in detections], axis=0)))
+                published = True
+                rospy.logdebug('Pose 2D x:{} y:{} theta:{}'.format(*np.mean([p for p,_ in detections], axis=0)))
+
+                if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
+                    curr_goal = next_goal
+                    next_goal = next_points[curr_goal]
+
+                    if state == AUTOMATED:
+                        move_base_send_goal(curr_goal)
+        
         if STATE != MANUEL:
-            pub_photo.publish(Empty())
-        rate.sleep()
+            pub_photo.publish(String())
+        
+        if not published:
+            rospy.wait_for_message('ar_pose_marker', AlvarMarkers)
+        else:
+            rate.sleep()
         
