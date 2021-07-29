@@ -5,7 +5,7 @@ import numpy as np
 
 from std_msgs.msg import Empty, String
 from geometry_msgs.msg import TransformStamped, PoseWithCovarianceStamped, Pose2D
-from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal, MoveBaseActionGoal
 from ar_track_alvar_msgs.msg import AlvarMarker, AlvarMarkers
 
 import tf2_ros, tf
@@ -17,26 +17,31 @@ ACTIONABLE_DURATION = rospy.Duration(3.0)
 ACTIONABLE_QUANTITY = 7
 
 # STATE
-AUTOMATED = 0
-MANUAL = 1
+STATE_AUTO = 0
+STATE_TELEOP = 1
+state = STATE_TELEOP
 
 # COMMAND
-PAUSE = 2
-RESUME = 3
-STOP = 4
+COMMAND_START = 2
+COMMAND_TELEOP = 3
+COMMAND_CANCEL = 4
+COMMAND_AUTO = 5
 
-state = MANUAL
-
-client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 seq = 1
+
+def move_base_incr_seq(msg):
+    global seq
+    rospy.loginfo('goal detected')
+    seq += 1
 
 def move_base_send_goal(waypoint_name):
     global seq
+    goal = MoveBaseGoal()
+    
     waypoint = waypoints[waypoint_name]
     x, y, theta = waypoint['x'], waypoint['y'], waypoint['theta']
-    rospy.loginfo("next waypoint is %s at x:%2.1f y:%2.1f theta:%2.1f" % (waypoint_name, x, y, theta))
-    goal = MoveBaseGoal()
     quaternion = quaternion_from_euler(0, 0, theta)
+    
     goal.target_pose.header.frame_id = 'map'
     goal.target_pose.header.stamp = rospy.Time.now()
     goal.target_pose.header.seq = seq
@@ -47,7 +52,8 @@ def move_base_send_goal(waypoint_name):
     goal.target_pose.pose.orientation.z = quaternion[2]
     goal.target_pose.pose.orientation.w = quaternion[3]
     client.send_goal(goal=goal)
-    seq += 1
+    
+    rospy.loginfo("next waypoint is %s at x:%2.1f y:%2.1f theta:%2.1f" % (waypoint_name, x, y, theta))
 
 
 def move_base_cancel():
@@ -59,15 +65,17 @@ def callback_control(msg, args):
     command = args
     global state
 
-    state = AUTOMATED if command == RESUME else MANUAL
-
-    if command == PAUSE:
+    if command == COMMAND_TELEOP:
+        state = STATE_TELEOP
         rospy.loginfo("autonomous navigation paused")
-    elif command == RESUME:
-        move_base_send_goal(curr_goal)
+    elif command == COMMAND_AUTO:
+        state = STATE_AUTO
         rospy.loginfo("autonomous navigation resumed")
-    elif command == STOP:
+    elif command == COMMAND_CANCEL:
+        state = STATE_TELEOP
         move_base_cancel()
+    elif command == COMMAND_START:
+        move_base_send_goal(curr_goal)
 
 
 def callback_step(msg, args):
@@ -119,9 +127,9 @@ def update_state_by_ar_marker(ar_marker_detection):
             if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
                 curr_goal = next_goal
                 next_goal = next_points[curr_goal]
-                print(marker_number, ar_marker_waypoints[marker_number])
+                rospy.loginfo("waypoints[{}] := {}".format(marker_number, ar_marker_waypoints[marker_number]))
 
-                if state == AUTOMATED:
+                if state == STATE_AUTO:
                     move_base_send_goal(curr_goal)
 
 
@@ -140,7 +148,7 @@ def callback_marker_detected(msg):
                 translation = list_from_translation(ar_tag_relative.transform.translation)
                 quaternion  = list_from_rotation(ar_tag_relative.transform.rotation)
 
-                rospy.loginfo_throttle(5, "{} detected relatively at x:{} y:{} z:{}".format(marker_number, *translation))
+                rospy.loginfo_throttle(5, "{} detected x:{:.2f} y:{:.2f} z:{:.2f} away from the rover".format(marker_number, *translation))
                 
                 if np.sum(np.sqrt(np.square(translation))) < ACTIONABLE_DISTANCE:
                     # getting pre-defined positions for ar_marker_#
@@ -153,7 +161,7 @@ def callback_marker_detected(msg):
                     total_base_y += ar_tag_translation[1] - translation[1]
                     total_base_t += -euler_from_quaternion(quaternion)[2]
                     
-                    rospy.loginfo_throttle(5, "updated position to x:{} y:{} z:{}".format(*(ar_tag_translation - translation)))
+                    rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f}".format(*(ar_tag_translation - translation)))
 
                     ar_marker_detections[marker_number].append((ar_tag_translation - translation, rospy.Time.now()))
 
@@ -170,16 +178,15 @@ def callback_marker_detected(msg):
         total_base_x /= (len(detected_marker_numbers) - far_marker_count)
         total_base_y /= (len(detected_marker_numbers) - far_marker_count)
         total_base_t /= (len(detected_marker_numbers) - far_marker_count)
-    
+ 
 
 def get_param(key):
-    rate = rospy.Rate(0.5)
     while True:
         try:
             return rospy.get_param(key)
         except KeyError:
             rospy.logerr('param {} not found'.format(key))
-            rate.sleep()
+            rospy.sleep(2)
 
 
 if __name__ == '__main__':
@@ -191,56 +198,42 @@ if __name__ == '__main__':
     ar_marker_positions = get_param('tf_static')
     next_points = get_param('remote_path')
 
-    curr_goal = next_points['start']
-    next_goal = next_points[curr_goal]
     ar_marker_detections = {ar_marker: [] for ar_marker in ar_marker_positions.keys()}
+        
+    curr_goal = 'start'
+    next_goal = next_points[curr_goal]
     
     tf_broadcaster = tf2_ros.TransformBroadcaster()
     tf_buffer = tf2_ros.Buffer()
     tf_listener = tf2_ros.TransformListener(tf_buffer)
+    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 
     #rospy.Subscriber('/robot_pose_ekf/odom_combined', PoseWithCovarianceStamped, update_odom_data, queue_size=10)
     #rospy.wait_for_message('/robot_pose_ekf/odom_combined', PoseWithCovarianceStamped)
-    rospy.loginfo('successfuly subscribed /robot_pose_ekf/odom_combined')
-    rospy.Subscriber('ar_pose_marker', AlvarMarkers, callback_marker_detected)
+    #rospy.loginfo('successfuly subscribed /robot_pose_ekf/odom_combined')
+    
+    rospy.Subscriber('/ar_pose_marker', AlvarMarkers, callback_marker_detected)
     pub = rospy.Publisher('base_link_position', Pose2D, queue_size=10)
     
-    rospy.wait_for_message('start', Empty)
-    rospy.loginfo("autonomous navigation started")
+    rospy.loginfo(rospy.get_name() + " successfully started")
+    
+    rospy.Subscriber('automate', Empty, callback_control, callback_args=COMMAND_AUTO)
+    rospy.Subscriber('start',  Empty, callback_control, callback_args=COMMAND_START)
+    rospy.Subscriber('teleop', Empty, callback_control, callback_args=COMMAND_TELEOP)
+    rospy.Subscriber('cancel', Empty, callback_control, callback_args=COMMAND_CANCEL)
     
     rospy.Subscriber('next', Empty, callback_step, callback_args=+1)
     rospy.Subscriber('prev', Empty, callback_step, callback_args=-1)
-    rospy.Subscriber('resume', Empty, callback_control, callback_args=RESUME)
-    rospy.Subscriber('pause', Empty, callback_control, callback_args=PAUSE)
-    rospy.Subscriber('stop', Empty, callback_control, callback_args=STOP)
-    rospy.Subscriber('waypoint', String, callback_set)
+    rospy.Subscriber('goto', String, callback_set)
     
-    rate = rospy.Rate(0.2)
-    pub_photo = rospy.Publisher('/save', String, queue_size=10)
+    rospy.Subscriber('/move_base/goal', MoveBaseActionGoal, move_base_incr_seq)
 
     while not rospy.is_shutdown():
-        now = rospy.Time.now()
-        published = False
-        for marker_number, detections in ar_marker_detections.items():
-            while len(detections) != 0 and now - detections[0][1] > ACTIONABLE_DURATION:
-                detections.pop(0)
-            if len(detections) > ACTIONABLE_QUANTITY:
-                pub.publish(Pose2D(*np.mean([p for p,_ in detections], axis=0)))
-                published = True
-                rospy.logdebug('Pose 2D x:{} y:{} theta:{}'.format(*np.mean([p for p,_ in detections], axis=0)))
+        if state != STATE_AUTO:
+            rospy.wait_for_message('automate', Empty)
+        
+        curr_goal = next_goal
+        next_goal = next_points[curr_goal]
+        move_base_send_goal(curr_goal)
+        client.wait_for_result()
 
-                if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
-                    curr_goal = next_goal
-                    next_goal = next_points[curr_goal]
-
-                    if state == AUTOMATED:
-                        move_base_send_goal(curr_goal)
-        
-        if state != MANUAL:
-            pub_photo.publish(String())
-        
-        if not published:
-            rospy.wait_for_message('ar_pose_marker', AlvarMarkers)
-        else:
-            rate.sleep()
-        
