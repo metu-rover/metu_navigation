@@ -150,9 +150,9 @@ waypoints:
     }
 
     landmark_15: {
-        x: 7.63,
-        y: 13.24,
-        theta: 0.0
+        x: 4.97,
+        y: 16.03,
+        theta: -0.87
     }
 
     pass_point_01: {
@@ -221,6 +221,18 @@ waypoints:
         theta: 0.0
     }
 
+    pass_point_12: {
+        x: 1.49,
+        y: 11.00,
+        theta: -2.9
+    }
+
+    pass_point_13: {
+        x: -1.00,
+        y: 16.07,
+        theta: 0.0
+    }
+
 
 
 actions:
@@ -259,7 +271,10 @@ remote_path:
     landmark_05: "waypoint_04"
     waypoint_04: "pass_point_10"
     pass_point_10: "waypoint_5A"
-
+    test: "pass_point_12"
+    pass_point_12: "pass_point_13"
+    pass_point_13: "landmark_15"
+    landmark_15: "pass_point_12"
 
 
   
