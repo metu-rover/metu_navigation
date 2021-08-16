@@ -14,7 +14,7 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler, qua
 
 ACTIONABLE_DISTANCE = 5
 ACTIONABLE_DURATION = rospy.Duration(3.0)
-ACTIONABLE_QUANTITY = 7
+ACTIONABLE_QUANTITY = 20
 
 # STATE
 STATE_AUTO = 0
@@ -28,6 +28,10 @@ COMMAND_CANCEL = 4
 COMMAND_AUTO = 5
 
 seq = 1
+
+#odom_data
+position = Pose2D()
+epsilon = Pose2D()
 
 def move_base_incr_seq(msg):
     global seq
@@ -112,28 +116,49 @@ def list_from_translation(translation):
 def list_from_rotation(rotation):
     return list(map(lambda attr: rotation.__getattribute__(attr), ('x','y','z','w')))
 
+def list_from_pose2d(pose2d):
+    return list(map(lambda attr: pose2d.__getattribute__(attr), ('x','y', 'theta')))
+
 
 def update_state_by_ar_marker(ar_marker_detection):
-    global state, curr_goal, next_goal
+    global state, curr_goal, next_goal, position, epsilon
     now = rospy.Time.now()
     for marker_number, detections in ar_marker_detection.items():
+	
+	
         while len(detections) != 0 and now - detections[0][1] > ACTIONABLE_DURATION:
             detections.pop(0)
         if len(detections) > ACTIONABLE_QUANTITY:
-            pub.publish(Pose2D(*np.mean([p for p,_ in detections], axis=0)))
-            rospy.logdebug('Pose 2D x:{} y:{} theta:{}'.format(*np.mean([p for p,_ in detections], axis=0)))
+            print(marker_number, detections[0][0])
+	    marker = Pose2D(*np.mean([p for p,_ in detections], axis=0))
+	    #pub.publish(marker)
+            rospy.loginfo('Pose 2D x:{} y:{} theta:{}'.format(*list_from_pose2d(marker)))
+	    rospy.loginfo('{}'.format(*map(lambda detection:detection[0], detections)))
+	    
+	    epsilon.x = marker.x - position.x
+  	    epsilon.y = marker.y - position.y
+	    epsilon.theta = marker.theta - position.theta
 
 
-            if marker_number in ar_marker_waypoints.keys() and curr_goal in ar_marker_waypoints[marker_number]:
-                curr_goal = next_goal
-                next_goal = next_points[curr_goal]
-                rospy.loginfo("waypoints[{}] := {}".format(marker_number, ar_marker_waypoints[marker_number]))
+def update_odom_data(msg, pub): #: PoseWithCovarianceStamped
+	global position, epsilon
+	position.x = epsilon.x + msg.pose.pose.position.x
+	position.y = epsilon.y + msg.pose.pose.position.y
+	position.theta = epsilon.theta + euler_from_quaternion(list_from_rotation(msg.pose.pose.orientation))[2]
+    	pub.publish(position)
 
-                if state == STATE_AUTO:
-                    move_base_send_goal(curr_goal)
+
+def norm(p1, p2=None):
+    try:
+        if p2:
+            p2 = np.zeros(0)
+    except ValueError:
+	pass
+    return np.sum(np.sqrt(np.square(p1 - p2)))
 
 
 def callback_marker_detected(msg):
+    global positon
     (total_base_x, total_base_y, total_base_t, far_marker_count) = (0, 0, 0, 0)
     detected_marker_numbers = ['ar_marker_' + str(marker.id) for marker in msg.markers if 1 <= int(marker.id) <= 15]
     
@@ -148,20 +173,47 @@ def callback_marker_detected(msg):
                 translation = list_from_translation(ar_tag_relative.transform.translation)
                 quaternion  = list_from_rotation(ar_tag_relative.transform.rotation)
 
-                rospy.loginfo_throttle(5, "{} detected x:{:.2f} y:{:.2f} z:{:.2f} away from the rover".format(marker_number, *translation))
+                rospy.loginfo_throttle(5, "{} detected x:{:.2f} y:{:.2f} z:{:.2f} away from the rover"
+                        .format(marker_number, *translation))
                 
-                if np.sum(np.sqrt(np.square(translation))) < ACTIONABLE_DISTANCE:
+                rospy.loginfo_throttle(5, "relative orientation roll: {:.2f} pitch: {:.2f} yaw: {:.2f}"
+                        .format(*euler_from_quaternion(quaternion)))
+
+		if np.sum(np.sqrt(np.square(translation))) < ACTIONABLE_DISTANCE:
+
                     # getting pre-defined positions for ar_marker_#
-                    if marker_number == 'ar_marker_5':
-                        print(np.sum(np.sqrt(np.square(translation))))
                     ar_tag_absolute = ar_marker_positions[marker_number]
                     ar_tag_translation = np.array(map(lambda key: float(ar_tag_absolute[key]), ('x','y','z')))
 
-                    total_base_x += ar_tag_translation[0] - translation[0]
-                    total_base_y += ar_tag_translation[1] - translation[1]
-                    total_base_t += -euler_from_quaternion(quaternion)[2]
+                    yaw = (ar_tag_absolute['yaw'] - euler_from_quaternion(quaternion)[2]) / 3.14 * 180
+		    
+                    e_translation = np.multiply(np.take(translation, [1, 0, 2]), [-1, +1, +1])
+                    w_translation = np.multiply(np.take(translation, [1, 0, 2]), [+1, -1, +1])
+                    n_translation = np.multiply(np.take(translation, [0, 1, 2]), [+1, +1, +1]) 
+		    s_translation = np.multiply(np.take(translation, [0, 1, 2]), [-1, -1, +1])
+
+                    p1 = ar_tag_translation - np.array(list_from_pose2d(position))
+
+                    translations = (e_translation, w_translation, n_translation, s_translation)
+                    directions   = ('east', 'west', 'north', 'south')
                     
-                    rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f}".format(*(ar_tag_translation - translation)))
+                    idx = np.argmin(map(lambda __translation: norm(p1, __translation), translations))
+                    translation = translations[idx]
+                    direction = directions[idx]
+                    
+                    rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f} on side {}"
+                            .format(*(ar_tag_translation - translation), direction))
+
+                    """
+                    rospy.loginfo("south x:{:.2f} y:{:.2f} z:{:.2f}"
+                            .format(*(ar_tag_translation - s_translation)))
+                    rospy.loginfo("north x:{:.2f} y:{:.2f} z:{:.2f}"
+                            .format(*(ar_tag_translation - n_translation)))
+                    rospy.loginfo("east  x:{:.2f} y:{:.2f} z:{:.2f}"
+                            .format(*(ar_tag_translation - e_translation)))
+                    rospy.loginfo("west  x:{:.2f} y:{:.2f} z:{:.2f}"
+                            .format(*(ar_tag_translation - w_translation)))
+                    """
 
                     ar_marker_detections[marker_number].append((ar_tag_translation - translation, rospy.Time.now()))
 
@@ -173,11 +225,12 @@ def callback_marker_detected(msg):
 
         except (tf2_ros.ExtrapolationException, tf2_ros.LookupException, tf2_ros.ConnectivityException):
             pass
-
+    '''
     if len(detected_marker_numbers) != far_marker_count and 1 <= len(detected_marker_numbers):
-        total_base_x /= (len(detected_marker_numbers) - far_marker_count)
+        #total_base_x /= (len(detected_marker_numbers) - far_marker_count)
         total_base_y /= (len(detected_marker_numbers) - far_marker_count)
-        total_base_t /= (len(detected_marker_numbers) - far_marker_count)
+        total_base_t /= (len(detected_marker_numbers) - far_marker_count) 
+    '''
  
 
 def get_param(key):
@@ -187,6 +240,8 @@ def get_param(key):
         except KeyError:
             rospy.logerr('param {} not found'.format(key))
             rospy.sleep(2)
+
+
 
 
 if __name__ == '__main__':
@@ -208,12 +263,14 @@ if __name__ == '__main__':
     tf_listener = tf2_ros.TransformListener(tf_buffer)
     client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 
-    #rospy.Subscriber('/robot_pose_ekf/odom_combined', PoseWithCovarianceStamped, update_odom_data, queue_size=10)
-    #rospy.wait_for_message('/robot_pose_ekf/odom_combined', PoseWithCovarianceStamped)
-    #rospy.loginfo('successfuly subscribed /robot_pose_ekf/odom_combined')
+    pub = rospy.Publisher('base_link_position', Pose2D, queue_size=10)
+    rospy.Subscriber('/robot_pose_ekf/odom_combined', PoseWithCovarianceStamped, update_odom_data, queue_size=10, callback_args=pub)
+    rospy.wait_for_message('/robot_pose_ekf/odom_combined', PoseWithCovarianceStamped)
+    rospy.loginfo('successfuly subscribed /robot_pose_ekf/odom_combined')
+
     
     rospy.Subscriber('/ar_pose_marker', AlvarMarkers, callback_marker_detected)
-    pub = rospy.Publisher('base_link_position', Pose2D, queue_size=10)
+    
     
     rospy.loginfo(rospy.get_name() + " successfully started")
     
