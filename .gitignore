@@ -1,3 +1,5 @@
 .vscode
 nodes/*.pyc
 nodes/__pycache__
+scripts/*.pyc
+bag/*
