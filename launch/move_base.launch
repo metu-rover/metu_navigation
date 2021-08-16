@@ -1,19 +1,35 @@
 <launch>
-  <master auto="start"/>
+  <remap from="odom" to="/rtabmap/odom"/>
+  <!--remap from="cmd_vel" to="nav_vel"/-->
+  
+  <node name="move_base"
+        pkg="move_base"
+        type="move_base"
+        clear_params="true"
+	output="screen">
 
-  <!-- Run the map server -->
-<!-- <node name="map_server" pkg="map_server" type="map_server" args="$(find p3dx_description)/launch/map.yaml my_map" output="screen"/>   -->
+    <rosparam command="load"
+              file="$(find metu_navigation)/config/move_base/move_base.yaml"/>
 
-  <!--- Run AMCL -->
+    <!-- costmaps -->
+    <rosparam command="load"
+              ns="global_costmap"
+              file="$(find metu_navigation)/config/move_base/costmaps/costmap_common.yaml"/>
+    <rosparam command="load"
+              ns="local_costmap"
+              file="$(find metu_navigation)/config/move_base/costmaps/costmap_common.yaml"/>
+    <rosparam command="load"
+              file="$(find metu_navigation)/config/move_base/costmaps/local_costmap.yaml"/>
+    <rosparam command="load"
+              file="$(find metu_navigation)/config/move_base/costmaps/global_costmap.yaml"/>
 
-  <include file="$(find amcl)/examples/amcl_omni.launch" />
- <!-- <include file="$(find erratic_navigation)/navigation_slam/slam_gmapping.launch" /> -->
-
-  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-    <rosparam file="$(find metu_description)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
-    <rosparam file="$(find metu_description)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
-    <rosparam file="$(find metu_description)/config/local_costmap_params.yaml" command="load" />
-    <rosparam file="$(find metu_description)/config/global_costmap_params.yaml" command="load" />
-    <rosparam file="$(find metu_description)/config/base_local_planner_params.yaml" command="load" />
+    <!-- planners -->
+    <rosparam command="load"
+              file="$(find metu_navigation)/config/move_base/planners/local_planner.yaml"/>
+    <rosparam command="load"
+              file="$(find metu_navigation)/config/move_base/planners/global_planner.yaml"/>
+ 
   </node>
+
+  
 </launch>

@@ -2,6 +2,10 @@
 <launch>
   <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf" output="screen">
     <param name="output_frame" value="odom_combined" />
+    <!-- MASTER -->
+    <rosparam command="load" file="$(find metu_navigation)/config/ekf_localization_node/ekf_2d.yaml" />
+    <param name="output_frame" value="odom" />
+    <!-- ====== -->
     <param name="base_footprint_frame" value="base_link" />
     <param name="freq" value="30.0" />
     <param name="sensor_timeout" value="1.0" />
@@ -11,6 +15,8 @@
     <param name="publish_tf" value="true" />
     <param name="debug" value="false" />
     <param name="gps_used" value="false" />
+    <!-- HEAD -->
+    
     <param name="vo_used" value="false" />
 
     <!--remap from="odom" to="/controllers/diff_drive/odom" /-->

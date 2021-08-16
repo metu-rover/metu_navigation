@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<rosparam file="$(find metu_navigation)/params/waypoints.yaml" />
+	<rosparam file="$(find metu_artag)/params/ar_tags.yaml" />
+	<node pkg="metu_navigation" type="path_planner_node.py" name="path_planner" output='screen' />
+</launch>
