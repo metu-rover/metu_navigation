@@ -194,30 +194,18 @@ def callback_marker_detected(msg):
 		    s_translation = np.multiply(np.take(translation, [0, 1, 2]), [-1, -1, +1])
 
                     p1 = ar_tag_translation - np.array(list_from_pose2d(position))
+                    
+                    translations = (e_translation, w_translation, n_translation, s_translation)
+                    directions   = ('east', 'west', 'north', 'south')
+                    
+                    idx = np.argmin(map(lambda __translation: norm(p1, __translation), translations))
+                    translation = translations[idx]
+                    direction = directions[idx]
+                    
+                    rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f} on side {}"
+                            .format(*(ar_tag_translation - translation), direction))
 
-                    distances_idx = np.argmin([
-                        norm(p1, e_translation),
-                        norm(p1, w_translation),
-                        norm(p1, n_translation),
-                        norm(p1, s_translation)
-                    ])
-
-                    if distances_idx == 0:      # west
-		        translation = e_translation
-                        direction = 'east'
-                    elif distances_idx == 1:    # east
-                        direction = 'west'
-                        translation = w_translation
-                    elif distances_idx == 2:    # south
-                        direction = 'north'
-                        translation = n_translation
-                    else:                       # north
-                        direction = 'south'
-		        translation = s_translation
-                    """
-                    rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f}"
-                            .format(*(ar_tag_translation - translation)))
-                    """
+                    
                     rospy.loginfo("south x:{:.2f} y:{:.2f} z:{:.2f}"
                             .format(*(ar_tag_translation - s_translation)))
                     rospy.loginfo("north x:{:.2f} y:{:.2f} z:{:.2f}"
@@ -227,7 +215,8 @@ def callback_marker_detected(msg):
                     rospy.loginfo("west  x:{:.2f} y:{:.2f} z:{:.2f}"
                             .format(*(ar_tag_translation - w_translation)))
 
-                    rospy.loginfo('direction {}'.format(direction))
+                    rospy.loginfo('direction {}'.format(direction)
+
 
                     ar_marker_detections[marker_number].append((ar_tag_translation - translation, rospy.Time.now()))
 
@@ -239,11 +228,7 @@ def callback_marker_detected(msg):
 
         except (tf2_ros.ExtrapolationException, tf2_ros.LookupException, tf2_ros.ConnectivityException):
             pass
-    '''
-    if len(detected_marker_numbers) != far_marker_count and 1 <= len(detected_marker_numbers):
-        #total_base_x /= (len(detected_marker_numbers) - far_marker_count)
-        total_base_y /= (len(detected_marker_numbers) - far_marker_count)
-        total_base_t /= (len(detected_marker_numbers) - far_marker_count) '''
+    
  
 
 def get_param(key):
@@ -268,6 +253,8 @@ def odom_publisher_callback(event=None):
     msg.pose.pose.orientation.w = w
     odom_pub.publish(msg) 
     
+
+
 
 
 

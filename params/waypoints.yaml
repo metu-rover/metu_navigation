@@ -5,6 +5,13 @@
 #     theta: <float>
 # }
 waypoints:
+
+    waypoint_TS: {
+        x: 1.0,
+        y: 1.0,
+        theta: 0.0
+    }
+    
     waypoint_00: {
         x: 0.0,
         y: 0.0,
@@ -271,7 +278,9 @@ remote_path:
     landmark_05: "waypoint_04"
     waypoint_04: "pass_point_10"
     pass_point_10: "waypoint_5A"
-    test: "pass_point_12"
+    test: "waypoint_TS" #"pass_point_12"
+    waypoint_TS: "waypoint_00"
+    waypoint_00: "waypoint_TS"
     pass_point_12: "pass_point_13"
     pass_point_13: "landmark_15"
     landmark_15: "pass_point_12"
