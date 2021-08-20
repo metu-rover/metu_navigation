@@ -1,9 +1,9 @@
 <launch>
   <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
   <arg name="rtabmap_args" value="--delete_db_on_start" />
-  <arg name="rgb_topic" value="/zed2/left/image_rect_color" />
-  <arg name="depth_topic" value="/zed2/depth/depth_registered" />
-  <arg name="camera_info_topic" value="/zed2/depth/camera_info" />
+  <arg name="rgb_topic" value="/zed2/zed_node/left/image_rect_color" />
+  <arg name="depth_topic" value="/zed2/zed_node/depth/depth_registered" />
+  <arg name="camera_info_topic" value="/zed2/zed_node/depth/camera_info" />
   <arg name="odom_topic" value="odom" />
   <arg name="visual_odometry" value="true" />
   <arg name="frame_id" value="base_link" />
@@ -13,6 +13,6 @@
   <arg name="rtabmapviz" value="false" />
   <arg name="publish_tf_odom" value="false"/>
   <arg name="vo_frame_id" value="odom"/>
-  <arg name="imu_topic" value="/zed2/imu/data"/>
+  <arg name="imu_topic" value="/zed2/zed_node/imu/data"/>
   </include>
 </launch>
