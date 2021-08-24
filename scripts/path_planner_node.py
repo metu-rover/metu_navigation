@@ -125,28 +125,28 @@ def update_state_by_ar_marker(ar_marker_detection):
     global state, curr_goal, next_goal, position, epsilon
     now = rospy.Time.now()
     for marker_number, detections in ar_marker_detection.items():
-	
-	
+    
+    
         while len(detections) != 0 and now - detections[0][1] > ACTIONABLE_DURATION:
             detections.pop(0)
         if len(detections) > ACTIONABLE_QUANTITY:
             print(marker_number, detections[0][0])
-	    marker = Pose2D(*np.mean([p for p,_ in detections], axis=0))
-	    #pub.publish(marker)
+            marker = Pose2D(*np.mean([p for p,_ in detections], axis=0))
+        #pub.publish(marker)
             rospy.loginfo('Pose 2D x:{} y:{} theta:{}'.format(*list_from_pose2d(marker)))
-	    rospy.loginfo('{}'.format(*map(lambda detection:detection[0], detections)))
-	    
-	    epsilon.x = marker.x - position.x
-  	    epsilon.y = marker.y - position.y
-	    epsilon.theta = marker.theta - position.theta
+            rospy.loginfo('{}'.format(*map(lambda detection:detection[0], detections)))
+            
+            epsilon.x = marker.x - position.x
+            epsilon.y = marker.y - position.y
+            epsilon.theta = marker.theta - position.theta
 
 
 def update_odom_data(msg, pub): #: PoseWithCovarianceStamped
-	global position, epsilon
-	position.x = epsilon.x + msg.pose.pose.position.x
-	position.y = epsilon.y + msg.pose.pose.position.y
-	position.theta = epsilon.theta + euler_from_quaternion(list_from_rotation(msg.pose.pose.orientation))[2]
-    	pub.publish(position)
+    global position, epsilon
+    position.x = epsilon.x + msg.pose.pose.position.x
+    position.y = epsilon.y + msg.pose.pose.position.y
+    position.theta = epsilon.theta + euler_from_quaternion(list_from_rotation(msg.pose.pose.orientation))[2]
+    pub.publish(position)
 
 
 def norm(p1, p2=None):
@@ -154,7 +154,7 @@ def norm(p1, p2=None):
         if p2:
             p2 = np.zeros(0)
     except ValueError:
-	pass
+        pass
     return np.sum(np.sqrt(np.square(p1 - p2)))
 
 
@@ -179,19 +179,19 @@ def callback_marker_detected(msg):
                 
                 rospy.loginfo_throttle(5, "relative orientation roll: {:.2f} pitch: {:.2f} yaw: {:.2f}"
                         .format(*euler_from_quaternion(quaternion)))
-
-		if np.sum(np.sqrt(np.square(translation))) < ACTIONABLE_DISTANCE:
+                
+                if np.sum(np.sqrt(np.square(translation))) < ACTIONABLE_DISTANCE:
 
                     # getting pre-defined positions for ar_marker_#
                     ar_tag_absolute = ar_marker_positions[marker_number]
                     ar_tag_translation = np.array(map(lambda key: float(ar_tag_absolute[key]), ('x','y','z')))
 
                     yaw = (ar_tag_absolute['yaw'] - euler_from_quaternion(quaternion)[2]) / 3.14 * 180
-		    
+            
                     e_translation = np.multiply(np.take(translation, [1, 0, 2]), [-1, +1, +1])
                     w_translation = np.multiply(np.take(translation, [1, 0, 2]), [+1, -1, +1])
                     n_translation = np.multiply(np.take(translation, [0, 1, 2]), [+1, +1, +1]) 
-		    s_translation = np.multiply(np.take(translation, [0, 1, 2]), [-1, -1, +1])
+                    s_translation = np.multiply(np.take(translation, [0, 1, 2]), [-1, -1, +1])
 
                     p1 = ar_tag_translation - np.array(list_from_pose2d(position))
                     
@@ -202,8 +202,8 @@ def callback_marker_detected(msg):
                     translation = translations[idx]
                     direction = directions[idx]
                     
-                    rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f} on side {}"
-                            .format(*(ar_tag_translation - translation), direction))
+                    rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f} on side"
+                            .format(*(ar_tag_translation - translation)) + direction)
 
                     
                     rospy.loginfo("south x:{:.2f} y:{:.2f} z:{:.2f}"
@@ -215,7 +215,7 @@ def callback_marker_detected(msg):
                     rospy.loginfo("west  x:{:.2f} y:{:.2f} z:{:.2f}"
                             .format(*(ar_tag_translation - w_translation)))
 
-                    rospy.loginfo('direction {}'.format(direction)
+                    rospy.loginfo('direction {}'.format(direction))
 
 
                     ar_marker_detections[marker_number].append((ar_tag_translation - translation, rospy.Time.now()))
