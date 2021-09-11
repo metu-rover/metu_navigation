@@ -115,8 +115,8 @@ waypoints:
     }
 
     landmark_14: {
-        x: 2.04,
-        y: -12.02,
+        x: 23.63,
+        y: -4.62,
         theta: 0.0
     }
 
@@ -193,16 +193,49 @@ waypoints:
     }
 
     pass_point_12: {
-        x: 1.49,
-        y: 11.00,
-        theta: -2.9
+        x: 23.68,
+        y: -0.74,
+        theta: 0.53
     }
 
     pass_point_13: {
-        x: -1.00,
-        y: 16.07,
+        x: 24.64,
+        y: 2.17,
+        theta: 3.10
+    }
+
+    pass_point_14: {
+        x: 24.64,
+        y: 2.17,
         theta: 0.0
     }
+
+    pass_point_15: {
+        x: 25.77,
+        y: -7.13,
+        theta: 1.39
+    }
+
+    pass_point_16: {
+        x: -1.00,
+        y: 16.07,
+        theta: -1.39
+    }
+
+    pass_point_17: {
+        x: 19.63,
+        y: -10.19,
+        theta: -0.06
+    }
+
+    pass_point_18: {
+        x: -0.66,
+        y: -6.08,
+        theta: 3.0
+    }
+
+
+
 
 
 
@@ -227,24 +260,25 @@ remote_path:
     pass_point_10: "waypoint_01" #wpT
     waypoint_01: "pass_point_11"
     pass_point_11: "pass_point_03"
-    pass_point_03: "landmark_01"
-    landmark_01: "landmark_02"
-    landmark_02: "landmark_10" 
-    landmark_10: "landmark_05"
-    landmark_05: "pass_point_04" 
-    pass_point_04: "landmark_09"
-    landmark_09: "waypoint_02" #wpA
+    pass_point_03: "waypoint_02" #wpA
     waypoint_02: "landmark_12"    
-    landmark_12: "landmark_04"
-    landmark_04: "waypoint_03" #wpG
-    waypoint_03: "landmark_04"
-    landmark_04: "landmark_08"    
-    landmark_08: "pass_point_05"
+    landmark_12: "pass_point_12"
+    pass_point_12: "landmark_04"
+    landmark_04: "pass_point_13"
+    pass_point_13: "waypoint_03" #wpG
+    waypoint_03: "pass_point_14"
+    pass_point_14: "landmark_14"
+    landmark_14: "pass_point_15"
+    pass_point_15: "landmark_08"    
+    landmark_08: "pass_point_16"
+    pass_point_16: "pass_point_17"
+    pass_point_17: "pass_point_05"
     pass_point_05: "landmark_13"
     landmark_13: "waypoint_04" #wpF
     waypoint_04: "landmark_07"
     landmark_07: "passpoint_06"
-    pass_point_06: "start"
+    pass_point_06: "pass_point_18"
+    pass_point_18: "start"
     
 
 
