@@ -13,9 +13,10 @@ import tf2_ros, tf
 from tf import transformations as t
 from tf.transformations import euler_from_quaternion, quaternion_from_euler, quaternion_multiply
 
-ACTIONABLE_DISTANCE = 5
+ACTIONABLE_DISTANCE = 0.50
 ACTIONABLE_DURATION = rospy.Duration(3.0)
 ACTIONABLE_QUANTITY = 20
+AR_MARKER_RANGE = 5
 
 # STATE
 STATE_AUTO = 0
@@ -60,6 +61,12 @@ def move_base_send_goal(waypoint_name):
     
     rospy.loginfo("next waypoint is %s at x:%2.1f y:%2.1f theta:%2.1f" % (waypoint_name, x, y, theta))
 
+def send_next_goal():
+    global curr_goal, next_goal, state
+    if state == AUTO:
+        curr_goal = next_goal
+        next_goal = next_points[curr_goal]
+        move_base_send_goal(curr_goal)
 
 def move_base_cancel():
     rospy.loginfo("rover stopped")
@@ -139,7 +146,14 @@ def update_state_by_ar_marker(ar_marker_detection):
             epsilon.x = marker.x - position.x
             epsilon.y = marker.y - position.y
             epsilon.theta = marker.theta - position.theta
+	    rospy.loginfo(np.sum(np.square(list_from_pose2d(epsilon))))
 
+	    if int(curr_goal.split('_')[-1]) == int(marker_number.split('_')[-1]) and np.sum(np.square(list_from_pose2d(epsilon))) < AR_MARKER_RANGE:
+		rospy.loginfo((curr_goal, marker_number))
+		send_next_goal()
+
+
+   
 
 def update_odom_data(msg, pub): #: PoseWithCovarianceStamped
     global position, epsilon
@@ -151,7 +165,7 @@ def update_odom_data(msg, pub): #: PoseWithCovarianceStamped
 
 def norm(p1, p2=None):
     try:
-        if p2:
+        if not p2:
             p2 = np.zeros(0)
     except ValueError:
         pass
@@ -180,7 +194,7 @@ def callback_marker_detected(msg):
                 rospy.loginfo_throttle(5, "relative orientation roll: {:.2f} pitch: {:.2f} yaw: {:.2f}"
                         .format(*euler_from_quaternion(quaternion)))
                 
-                if np.sum(np.sqrt(np.square(translation))) < ACTIONABLE_DISTANCE:
+                if np.sum(np.sqrt(np.square(translation))) < AR_MARKER_RANGE:
 
                     # getting pre-defined positions for ar_marker_#
                     ar_tag_absolute = ar_marker_positions[marker_number]
@@ -205,7 +219,7 @@ def callback_marker_detected(msg):
                     rospy.loginfo_throttle(5, "the rover's position has updated by x:{:.2f} y:{:.2f} z:{:.2f} on side"
                             .format(*(ar_tag_translation - translation)) + direction)
 
-                    
+                    """
                     rospy.loginfo("south x:{:.2f} y:{:.2f} z:{:.2f}"
                             .format(*(ar_tag_translation - s_translation)))
                     rospy.loginfo("north x:{:.2f} y:{:.2f} z:{:.2f}"
@@ -216,7 +230,7 @@ def callback_marker_detected(msg):
                             .format(*(ar_tag_translation - w_translation)))
 
                     rospy.loginfo('direction {}'.format(direction))
-
+                    """
 
                     ar_marker_detections[marker_number].append((ar_tag_translation - translation, rospy.Time.now()))
 
@@ -303,12 +317,14 @@ if __name__ == '__main__':
 
     rospy.Timer(rospy.Duration(1.0/30), odom_publisher_callback)
 
+    rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         if state != STATE_AUTO:
             rospy.wait_for_message('automate', Empty)
         
+	#if curr_goal == 'start' or norm(np.asarray(list_from_pose2d(position)), np.asarray(list_from_pose2d(Pose2D(**waypoints[curr_goal])))) < ACTIONABLE_DISTANCE:
         curr_goal = next_goal
         next_goal = next_points[curr_goal]
         move_base_send_goal(curr_goal)
         client.wait_for_result()
-
+        

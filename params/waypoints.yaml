@@ -11,142 +11,106 @@ waypoints:
         y: 1.0,
         theta: 0.0
     }
-    
-    waypoint_00: {
-        x: 0.0,
-        y: 0.0,
+   
+    waypoint_01: { #wpT
+        x: 8.37,
+        y: -6.26,
         theta: 0.0
     }
 
-    waypoint_SC: {
-        x: 14.77,
-        y: -18.08,
+    waypoint_02: { #wpA
+        x: 16.56,
+        y: 5.61,
         theta: 0.0
     }
 
-    waypoint_M1: {
-        x: 5.68,
-        y: 0,
+    waypoint_03: { #wpG
+        x: 26.39,
+        y: 4.35,
         theta: 0.0
     }
 
-    waypoint_M3: {
-        x: 20.39,
-        y: -4.11,
-        theta: 0.0
-    }
-
-    waypoint_01: {
-        x: 12.19,
-        y: 8.73,
-        theta: 0.0
-    }
-
-    waypoint_02: {
-        x: 25.09, #25.04
-        y: 6.00,  #4.36
-        theta: 0.0
-    }
-
-    waypoint_03: {
-        x: 28.62,
-        y: -6.17,
-        theta: 0.0
-    }
-
-    waypoint_04: {
-        x: 11.63,
-        y: -16.85,
-        theta: 0.0
-    }
-
-    waypoint_5A: {
-        x: 7.64,
-        y: -5.55,
-        theta: 0.0
-    }
-
-    waypoint_5B: {
-        x: 27.48,
-        y: -13.65,
+    waypoint_04: { #wpF
+        x: 10.06,
+        y: -14.79,
         theta: 0.0
     }
 
     landmark_01: {
-        x: 4.48,
-        y: 0.97,
+        x: 9.80,
+        y: 0.00,
         theta: 0.0
     }
 
     landmark_02: {
-        x: 5.02, #5.02
-        y: 4.99, #4.99
+        x: 9.80, 
+        y: 3.50, 
         theta: 0.0
     }
 
     landmark_03: {
-        x: 18.81,
-        y: -3.59,
+        x: 34.00,
+        y: 1.50,
         theta: 0.0
     }
 
     landmark_04: {
-        x: 27.90,
-        y: 6.46,
+        x: 23.63,
+        y: -4.62,
         theta: 0.0
     }
 
     landmark_05: {
-        x: 13.23,
-        y: -11.99,
+        x: 10.27,
+        y: 9.76,
         theta: 0.0
     }
 
     landmark_06: {
-        x: 18.98,
-        y: 10.00,
+        x: 10.10,
+        y: -21.38,
         theta: 0.0
     }
 
     landmark_07: {
-        x: 19.00,
-        y: 4.50,
+        x: 5.44,
+        y: -15.17,
         theta: 0.0
     }
 
     landmark_08: {
-        x: 20.40,
-        y: -19.41,
+        x: 31.00,
+        y: -9.13,
         theta: 0.0
     }
 
     landmark_09: {
-        x: 13.00,
-        y: 8.99,
+        x: 18.37,
+        y: 11.00,
         theta: 0.0
     }
 
     landmark_10: {
-        x: 10.99,
-        y: -7.00,
+        x: 1.36,
+        y: 9.60,
         theta: 0.0
     }
 
     landmark_11: {
-        x: 31.56,
-        y: -18.81,
+        x: 17.00,
+        y: -22.46,
         theta: 0.0
     }
 
     landmark_12: {
-        x: 29.92,
-        y: 11.44,
+        x: 19.63,
+        y: -0.02,
         theta: 0.0
     }
 
     landmark_13: {
-        x: 29.49,
-        y: -4.99,
+        x: 18.29,
+        y: -13.90,
         theta: 0.0
     }
 
@@ -156,76 +120,76 @@ waypoints:
         theta: 0.0
     }
 
-    landmark_15: {
-        x: 4.97,
-        y: 16.03,
+    landmark_15: { #prep_zone
+        x: 3.02,
+        y: -17.34,
         theta: -0.87
     }
 
     pass_point_01: {
-        x: 3.58, #2.75
-        y: 1.87, #1.87
-        theta: 0.0
+        x: 0.68,
+        y: -4.36, 
+        theta: 1.70
     }
 
     pass_point_02: {
-        x: 4.59, #5.00
-        y: 2.89, #3.58
-        theta: 0.0
+        x: 4.84, 
+        y: -4.82, 
+        theta: 1.53
     }
 
     pass_point_03: {
-        x: 9.53, #9.05 #9.53
-        y: 9.55, #9.03
-        theta: 0.0
+        x: 14.41, 
+        y: -1.82, 
+        theta: -2.01
     }
 
     pass_point_04: {
-        x: 11.01, #11.99
-        y: 12.53, #12.00
-        theta: 0.0
+        x: -12.47, 
+        y: 14.18, 
+        theta: 1.28
     }
 
     pass_point_05: {
-        x: 13.75, #14.40
-        y: 12.64, #11.11
-        theta: 0.0
+        x: 20.64, 
+        y: -6.60, 
+        theta: 0.02
     }
 
     pass_point_06: {
-        x: 18.98,
-        y: 7.98,
-        theta: 0.0
+        x: 0.89,
+        y: -9.37,
+        theta: -2.50
     }
 
     pass_point_07: {
-        x: 28.95,
-        y: -0.02,
+        x: -0.59,
+        y: -2.54,
         theta: 0.0
     }
 
     pass_point_08: {
-        x: 24.00,
-        y: -4.99,
-        theta: 0.0
+        x: 3.12,
+        y: -4.63,
+        theta: 1.72
     }
 
     pass_point_09: {
-        x: 16.02,
-        y: -9.39,
+        x: 3.32,
+        y: -4.66,
         theta: 0.0
     }
 
     pass_point_10: {
-        x: 8.43,
-        y: -12.02,
+        x: 2.52,
+        y: -7.53,
         theta: 0.0
     }
 
     pass_point_11: {
-        x: 1.00,
-        y: 0.00,
-        theta: 0.0
+        x: 10.15,
+        y: -4.28,
+        theta: 2.02
     }
 
     pass_point_12: {
@@ -251,42 +215,37 @@ actions:
         ar_marker_8: ["waypoint_05"]
 
 
-remote_path:
-    start      : "pass_point_11"
-    pass_point_11: "pass_point_01"
-    pass_point_01: "landmark_01"
-    landmark_01: "landmark_02" #"pass_point_02"
-    pass_point_02: "landmark_02"
-    landmark_02: "pass_point_03"
-    pass_point_03: "pass_point_04"
-    pass_point_04: "landmark_09" 
-    landmark_09: "waypoint_01"
-    waypoint_01: "pass_point_05"
-    pass_point_05: "pass_point_06"
-    pass_point_06: "landmark_06"
-    landmark_06: "pass_point_06"
-    pass_point_06: "landmark_07"
-    landmark_07: "waypoint_02"
-    waypoint_02: "landmark_04"
-    landmark_04: "pass_point_07"
-    pass_point_07: "landmark_13"
-    landmark_13: "waypoint_03"
-    waypoint_03: "pass_point_08"
-    pass_point_08: "landmark_10"
-    landmark_10: "pass_point_09"
-    pass_point_09: "landmark_05"
-    landmark_05: "waypoint_04"
-    waypoint_04: "pass_point_10"
-    pass_point_10: "waypoint_5A"
-    test: "waypoint_TS" #"pass_point_12"
-    waypoint_TS: "waypoint_00"
-    waypoint_00: "waypoint_TS"
-    pass_point_12: "pass_point_13"
-    pass_point_13: "landmark_15"
-    landmark_15: "pass_point_12"
-
-
   
+
+remote_path:
+    start: "pass_point_07"
+    pass_point_07: "pass_point_01"
+    pass_point_01: "pass_point_08"
+    pass_point_08: "pass_point_09" 
+    pass_point_09: "pass_point_02"
+    pass_point_02: "pass_point_10"
+    pass_point_10: "waypoint_01" #wpT
+    waypoint_01: "pass_point_11"
+    pass_point_11: "pass_point_03"
+    pass_point_03: "landmark_01"
+    landmark_01: "landmark_02"
+    landmark_02: "landmark_10" 
+    landmark_10: "landmark_05"
+    landmark_05: "pass_point_04" 
+    pass_point_04: "landmark_09"
+    landmark_09: "waypoint_02" #wpA
+    waypoint_02: "landmark_12"    
+    landmark_12: "landmark_04"
+    landmark_04: "waypoint_03" #wpG
+    waypoint_03: "landmark_04"
+    landmark_04: "landmark_08"    
+    landmark_08: "pass_point_05"
+    pass_point_05: "landmark_13"
+    landmark_13: "waypoint_04" #wpF
+    waypoint_04: "landmark_07"
+    landmark_07: "passpoint_06"
+    pass_point_06: "start"
+    
 
 
 
